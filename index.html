@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Editor de horario</title>
+<style>
+  :root {
+    --fondo: #eef1f5; --papel: #ffffff; --tinta: #16202e; --tinta-suave: #5b6778;
+    --linea: #d6dce5; --hora-fondo: #f5f7fa; --sel: #0b5cff; --sel-fondo: #dbe8ff;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 20px 16px 36px; background: var(--fondo); color: var(--tinta);
+    font-family: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif; }
+  .contenedor { max-width: 1280px; margin: 0 auto; }
+  button { font: inherit; cursor: pointer; }
+  button:focus-visible, input:focus-visible { outline: 3px solid #16202e; outline-offset: 2px; }
+
+  .tope { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 12px; }
+  #nombre { flex: 1 1 260px; min-width: 200px; font: inherit; font-size: 22px; font-weight: 750; letter-spacing: -0.02em;
+    padding: 6px 10px; color: var(--tinta); background: transparent; border: 2px solid transparent; border-radius: 8px; }
+  #nombre:hover { border-color: var(--linea); }
+  #nombre:focus { background: #fff; border-color: var(--tinta); outline: none; }
+
+  .btn { padding: 8px 14px; font-size: 14px; font-weight: 600; color: var(--tinta); background: var(--papel);
+    border: 1px solid var(--linea); border-radius: 8px; }
+  .btn:hover:not(:disabled) { border-color: var(--tinta); }
+  .btn:disabled { opacity: .45; cursor: default; }
+  .btn.principal { background: var(--tinta); color: #fff; border-color: var(--tinta); }
+  .btn.peligro { color: #b42318; border-color: #f0b8b3; }
+  .grupo { display: flex; flex-wrap: wrap; gap: 8px; }
+
+  /* Paleta de categorías */
+  .paleta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .paleta .rot { font-size: 13px; font-weight: 650; color: var(--tinta-suave); margin-right: 2px; }
+  .cat { --c: #888; display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; font-size: 14px; font-weight: 650;
+    color: var(--tinta); background: var(--papel); border: 2px solid var(--linea); border-radius: 999px; }
+  .cat .punto { width: 11px; height: 11px; border-radius: 50%; background: var(--c); }
+  .cat .horas { font-weight: 500; font-size: 12px; color: var(--tinta-suave); }
+  .cat:hover { border-color: var(--c); }
+  .cat.activa { border-color: var(--c); box-shadow: inset 0 0 0 1px var(--c); }
+
+  /* Barra de fórmula */
+  .formula { display: grid; grid-template-columns: auto 1fr auto 1fr; gap: 8px 10px; align-items: center; margin-bottom: 10px;
+    padding: 10px 12px; background: var(--papel); border: 1px solid var(--linea); border-radius: 10px; }
+  .formula label { font-size: 13px; font-weight: 650; color: var(--tinta-suave); }
+  .formula input { min-width: 0; padding: 8px 10px; font: inherit; font-size: 14px; border: 1px solid var(--linea); border-radius: 8px; color: var(--tinta); }
+  .formula input:focus { outline: none; border-color: var(--sel); box-shadow: 0 0 0 2px var(--sel-fondo); }
+
+  /* Cuadrícula */
+  .tabla-wrap { overflow: auto; max-height: 68vh; background: var(--papel); border: 1px solid var(--linea); border-radius: 10px; }
+  table { width: 100%; min-width: 980px; border-collapse: separate; border-spacing: 0; user-select: none; -webkit-user-select: none; }
+  th, td { padding: 3px; border-right: 1px solid var(--linea); border-bottom: 1px solid var(--linea); text-align: center; }
+  th:last-child, td:last-child { border-right: 0; }
+  tbody tr:last-child td { border-bottom: 0; }
+  thead th { position: sticky; top: 0; z-index: 2; padding: 11px 6px; background: #1b2635; color: #fff; font-size: 14px; font-weight: 650; cursor: pointer; }
+  thead th:hover { background: #2a3a50; }
+  thead th.hoy { background: #0e7a8c; }
+  thead th:first-child { left: 0; z-index: 3; }
+  td.hora { position: sticky; left: 0; z-index: 1; width: 122px; padding: 6px 8px; background: var(--hora-fondo);
+    color: var(--tinta-suave); font-size: 12px; font-weight: 650; white-space: nowrap; cursor: pointer; }
+  td.hora:hover { background: #e6ebf2; }
+  td.celda { height: 48px; min-width: 118px; cursor: cell; }
+
+  .c { display: flex; flex-direction: column; justify-content: center; height: 100%; min-height: 40px; padding: 4px 7px;
+    border-radius: 6px; background: var(--col); color: #fff; line-height: 1.25; overflow: hidden; }
+  .c strong { font-size: 12px; font-weight: 700; }
+  .c span { font-size: 11px; opacity: .9; }
+  .c.libre { opacity: .85; }
+  td.sel { background: var(--sel-fondo); }
+  td.sel .c { box-shadow: 0 0 0 2px var(--sel); }
+  td.activo .c { box-shadow: 0 0 0 3px #0a3fb3; }
+  .c input.inline { width: 100%; padding: 3px 4px; font: inherit; font-size: 12px; font-weight: 700; text-align: center; color: var(--tinta);
+    background: #fff; border: 0; border-radius: 4px; outline: 2px solid #0a3fb3; }
+
+  .estado { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 16px; margin-top: 10px; font-size: 13px; color: var(--tinta-suave); }
+  .atajos { margin-top: 10px; padding: 12px 14px; background: var(--papel); border: 1px solid var(--linea); border-radius: 10px; font-size: 13px; line-height: 1.7; color: var(--tinta-suave); }
+  .atajos b { color: var(--tinta); }
+  kbd { padding: 1px 6px; font: 600 12px ui-monospace, Consolas, monospace; background: var(--hora-fondo); border: 1px solid var(--linea); border-bottom-width: 2px; border-radius: 5px; color: var(--tinta); }
+
+  @media (max-width: 700px) {
+    .formula { grid-template-columns: auto 1fr; }
+    #nombre { font-size: 19px; }
+  }
+</style>
+</head>
+<body>
+<div class="contenedor">
+
+  <div class="tope">
+    <input id="nombre" aria-label="Nombre del horario" value="Mi horario">
+    <div class="grupo">
+      <button type="button" class="btn" id="btnDeshacer" title="Ctrl+Z">Deshacer</button>
+      <button type="button" class="btn" id="btnRehacer" title="Ctrl+Y">Rehacer</button>
+      <button type="button" class="btn" id="btnImportar">Importar JSON</button>
+      <button type="button" class="btn principal" id="btnDescargar">Descargar JSON</button>
+    </div>
+    <input type="file" id="archivo" accept=".json,application/json" hidden>
+  </div>
+
+  <div class="paleta" id="paleta" role="group" aria-label="Categoría de la selección"></div>
+
+  <div class="formula">
+    <label for="fTitulo">Título</label><input id="fTitulo" placeholder="Ej: Chamba, Física III…" autocomplete="off">
+    <label for="fDetalle">Detalle</label><input id="fDetalle" placeholder="Ej: Turno 12 PM - 7 PM" autocomplete="off">
+  </div>
+
+  <div class="tabla-wrap">
+    <table aria-label="Horario semanal">
+      <thead><tr id="encabezado"></tr></thead>
+      <tbody id="cuerpo"></tbody>
+    </table>
+  </div>
+
+  <div class="estado">
+    <span id="seleccion"></span>
+    <span id="guardado">Guardado automático en este navegador</span>
+  </div>
+
+  <div class="atajos">
+    <b>Cómo usarlo:</b>
+    arrastra sobre las casillas para seleccionar un rango (o toca el nombre de un día o de una hora para seleccionar toda la columna o fila),
+    elige una <b>categoría</b> y escribe el título. Todo lo que cambies se aplica a <b>todas las casillas seleccionadas</b>.<br>
+    <kbd>Flechas</kbd> mover · <kbd>Shift</kbd>+<kbd>Flechas</kbd> ampliar · <kbd>Enter</kbd> o escribir directo para editar ·
+    <kbd>Supr</kbd> vaciar · <kbd>Ctrl</kbd>+<kbd>C</kbd>/<kbd>X</kbd>/<kbd>V</kbd> copiar, cortar, pegar (también desde Excel) ·
+    <kbd>Ctrl</kbd>+<kbd>D</kbd> rellenar hacia abajo · <kbd>Ctrl</kbd>+<kbd>R</kbd> hacia la derecha · <kbd>Ctrl</kbd>+<kbd>Z</kbd> deshacer ·
+    <kbd>Ctrl</kbd>+<kbd>A</kbd> todo.
+    <div style="margin-top:8px"><button type="button" class="btn" id="btnBlanco">Empezar en blanco</button>
+    <button type="button" class="btn peligro" id="btnReset">Volver al ejemplo</button></div>
+  </div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const CLAVE = "editor-horario-v1";
+const aMin = (hhmm) => { const [h, m] = hhmm.split(":").map(Number); return h * 60 + m; };
+const fmt = (hhmm) => {
+  const [h, m] = hhmm.split(":").map(Number);
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${String(h12).padStart(2, "0")}:${String(m).padStart(2, "0")} ${h >= 12 ? "PM" : "AM"}`;
+};
+const ultimo = (arr, fn) => { for (let i = arr.length - 1; i >= 0; i--) if (fn(arr[i])) return i; return -1; };
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const horasTxt = (min) => { const h = Math.floor(min / 60), m = min % 60; return m ? `${h} h ${m} min` : `${h} h`; };
+
+const CELDA_LIBRE = { categoria: "libre", titulo: "Libre", detalle: "" };
+const esLibre = (c) => c.categoria === "libre" && c.titulo === "Libre" && !c.detalle;
+const igual = (a, b) => a.categoria === b.categoria && a.titulo === b.titulo && a.detalle === b.detalle;
+
+/* Horario de ejemplo: tus clases y tus turnos de chamba */
+const EJEMPLO = {
+  titulo: "Mi horario: clases y chamba",
+  subtitulo: "Cursos de la universidad y turnos de chamba",
+  dias: ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"],
+  franjas: [
+    ["07:00","07:50"],["07:50","08:40"],["08:40","09:30"],["09:30","10:20"],["10:20","11:10"],["11:10","12:00"],
+    ["12:00","12:50"],["12:50","13:40"],["13:40","14:30"],["14:30","15:20"],["15:20","16:10"],["16:30","17:20"],
+    ["17:20","18:10"],["18:10","19:00"],["19:00","19:50"],["19:50","20:40"],["20:40","21:30"],["21:30","22:20"]
+  ],
+  categorias: {
+    estudio: { nombre: "Estudio", color: "#2f6fdf" },
+    trabajo: { nombre: "Trabajo", color: "#d98a0b" },
+    entrenamiento: { nombre: "Entrenamiento", color: "#1f9d6b" },
+    proyecto: { nombre: "Proyecto", color: "#8a4fd6" },
+    libre: { nombre: "Libre", color: "#8b97a8" }
+  },
+  bloques: [
+    { dias: [3], desde: "07:00", hasta: "22:20", categoria: "libre", titulo: "Sin chamba", detalle: "No disponible" },
+    { dias: [1], desde: "10:20", hasta: "15:20", categoria: "trabajo", titulo: "Chamba", detalle: "Turno 10 AM - 3 PM" },
+    { dias: [2], desde: "12:00", hasta: "19:00", categoria: "trabajo", titulo: "Chamba", detalle: "Turno 12 PM - 7 PM" },
+    { dias: [4], desde: "12:00", hasta: "19:00", categoria: "trabajo", titulo: "Chamba", detalle: "Turno 12 PM - 7 PM" },
+    { dias: [5], desde: "10:20", hasta: "15:20", categoria: "trabajo", titulo: "Chamba", detalle: "Turno 10 AM - 3 PM" },
+    { dias: [6], desde: "07:50", hasta: "13:40", categoria: "trabajo", titulo: "Chamba", detalle: "Turno 8 AM - 2 PM" },
+    { dias: [7], desde: "13:40", hasta: "22:20", categoria: "trabajo", titulo: "Chamba", detalle: "Turno 2 PM - 10 PM" },
+    { dias: [1], desde: "07:50", hasta: "09:30", categoria: "estudio", titulo: "Física III", detalle: "Ciclo IV - A" },
+    { dias: [5], desde: "08:40", hasta: "10:20", categoria: "estudio", titulo: "Física III", detalle: "Ciclo IV - A" },
+    { dias: [3], desde: "10:20", hasta: "12:00", categoria: "estudio", titulo: "Física III", detalle: "Ciclo IV - A" },
+    { dias: [1], desde: "16:30", hasta: "19:00", categoria: "estudio", titulo: "Arquitectura del Computador", detalle: "Ciclo VIII - A" },
+    { dias: [3], desde: "17:20", hasta: "19:00", categoria: "estudio", titulo: "Administración y Gestión (P)", detalle: "Ciclo VI - B" },
+    { dias: [5], desde: "17:20", hasta: "19:00", categoria: "estudio", titulo: "Administración y Gestión (T)", detalle: "Ciclo VI - B" },
+    { dias: [3], desde: "19:00", hasta: "20:40", categoria: "estudio", titulo: "Inglés IV", detalle: "Ciclo VI - A" }
+  ],
+  reglasLibres: [],
+  porDefecto: CELDA_LIBRE
+};
+
+let meta, celdas;
+let sel = { ar: 0, ac: 0, fr: 0, fc: 0 };
+let arrastrando = false, editando = false;
+let historial = [], futuro = [], clip = null, ultimaCat = "estudio";
+
+/* ---------- JSON <-> cuadrícula ---------- */
+function cargarJson(j) {
+  ["dias", "franjas", "categorias", "bloques"].forEach(k => { if (!(k in j)) throw new Error(`falta "${k}"`); });
+  const reglas = j.reglasLibres || [];
+  const categorias = { ...j.categorias };
+  if (!categorias.libre) categorias.libre = { nombre: "Libre", color: "#8b97a8" };
+  meta = { titulo: j.titulo || "Mi horario", subtitulo: j.subtitulo || "", dias: j.dias, franjas: j.franjas, categorias };
+  celdas = meta.franjas.map(f => meta.dias.map((_, d) => {
+    const ini = aMin(f[0]), fin = aMin(f[1]);
+    const i = ultimo(j.bloques, b => b.dias.includes(d + 1) && aMin(b.desde) <= ini && fin <= aMin(b.hasta));
+    const x = i >= 0 ? j.bloques[i] : reglas.find(r => aMin(r.desde) <= ini && ini < aMin(r.hasta));
+    return x ? { categoria: x.categoria, titulo: x.titulo, detalle: x.detalle || "" } : { ...CELDA_LIBRE };
+  }));
+  sel = { ar: 0, ac: 0, fr: 0, fc: 0 };
+  historial = []; futuro = [];
+}
+
+function aJson() {
+  const lista = [];
+  meta.dias.forEach((_, d) => {
+    let r = 0;
+    while (r < celdas.length) {
+      const c = celdas[r][d];
+      if (esLibre(c)) { r++; continue; }
+      let r2 = r;
+      while (r2 + 1 < celdas.length && igual(celdas[r2 + 1][d], c)) r2++;
+      lista.push({ dia: d + 1, desde: meta.franjas[r][0], hasta: meta.franjas[r2][1], categoria: c.categoria, titulo: c.titulo, detalle: c.detalle });
+      r = r2 + 1;
+    }
+  });
+  // une los días que tienen exactamente el mismo bloque
+  const bloques = [];
+  lista.forEach(b => {
+    const igualB = bloques.find(x => x.desde === b.desde && x.hasta === b.hasta && x.categoria === b.categoria && x.titulo === b.titulo && x.detalle === b.detalle);
+    if (igualB) igualB.dias.push(b.dia);
+    else bloques.push({ dias: [b.dia], desde: b.desde, hasta: b.hasta, categoria: b.categoria, titulo: b.titulo, detalle: b.detalle });
+  });
+  return {
+    titulo: meta.titulo, subtitulo: meta.subtitulo, dias: meta.dias, franjas: meta.franjas, categorias: meta.categorias,
+    _ayuda: "dias: 1=Lunes ... 7=Domingo. Un bloque ocupa todas las franjas que caen dentro de desde-hasta.",
+    bloques, reglasLibres: [], porDefecto: { ...CELDA_LIBRE }
+  };
+}
+
+function guardar() {
+  try {
+    localStorage.setItem(CLAVE, JSON.stringify({ meta, celdas }));
+    $("guardado").textContent = "Guardado automático en este navegador";
+  } catch (e) { $("guardado").textContent = "No se pudo guardar en el navegador: descarga el JSON"; }
+}
+
+/* ---------- Selección ---------- */
+function rango() {
+  return { r1: Math.min(sel.ar, sel.fr), r2: Math.max(sel.ar, sel.fr), c1: Math.min(sel.ac, sel.fc), c2: Math.max(sel.ac, sel.fc) };
+}
+function celdasSel() {
+  const { r1, r2, c1, c2 } = rango(), out = [];
+  for (let r = r1; r <= r2; r++) for (let c = c1; c <= c2; c++) out.push([r, c]);
+  return out;
+}
+const tdDe = (r, c) => $("cuerpo").querySelector(`td.celda[data-r="${r}"][data-c="${c}"]`);
+
+function actualizarSel() {
+  const { r1, r2, c1, c2 } = rango();
+  $("cuerpo").querySelectorAll("td.celda").forEach(td => {
+    const r = +td.dataset.r, c = +td.dataset.c;
+    td.classList.toggle("sel", r >= r1 && r <= r2 && c >= c1 && c <= c2);
+    td.classList.toggle("activo", r === sel.ar && c === sel.ac);
+  });
+  const a = celdas[sel.ar][sel.ac];
+  $("fTitulo").value = a.titulo;
+  $("fDetalle").value = a.detalle;
+  document.querySelectorAll(".cat").forEach(b => b.classList.toggle("activa", b.dataset.id === a.categoria));
+
+  const n = (r2 - r1 + 1) * (c2 - c1 + 1);
+  let min = 0;
+  celdasSel().forEach(([r]) => { min += aMin(meta.franjas[r][1]) - aMin(meta.franjas[r][0]); });
+  const dias = c1 === c2 ? meta.dias[c1] : `${meta.dias[c1]} a ${meta.dias[c2]}`;
+  const horas = r1 === r2 ? fmt(meta.franjas[r1][0]) + " - " + fmt(meta.franjas[r1][1]) : fmt(meta.franjas[r1][0]) + " - " + fmt(meta.franjas[r2][1]);
+  $("seleccion").textContent = `${dias} · ${horas} · ${n} casilla${n > 1 ? "s" : ""} · ${horasTxt(min)}`;
+}
+
+function mover(dr, dc, ext) {
+  const R = celdas.length, C = meta.dias.length;
+  const nr = clamp((ext ? sel.fr : sel.ar) + dr, 0, R - 1), nc = clamp((ext ? sel.fc : sel.ac) + dc, 0, C - 1);
+  sel = ext ? { ...sel, fr: nr, fc: nc } : { ar: nr, ac: nc, fr: nr, fc: nc };
+  actualizarSel();
+  const td = tdDe(nr, nc);
+  if (td) td.scrollIntoView({ block: "nearest", inline: "nearest" });
+}
+
+/* ---------- Dibujo ---------- */
+function dibujar() {
+  const hoy = (new Date().getDay() + 6) % 7;
+  if (document.activeElement !== $("nombre")) $("nombre").value = meta.titulo;
+
+  const enc = $("encabezado");
+  enc.innerHTML = "";
+  const th0 = document.createElement("th");
+  th0.textContent = "Hora"; th0.dataset.todo = "1"; th0.title = "Seleccionar todo";
+  enc.appendChild(th0);
+  meta.dias.forEach((d, i) => {
+    const th = document.createElement("th");
+    th.textContent = d; th.dataset.col = i; if (i === hoy) th.className = "hoy";
+    enc.appendChild(th);
+  });
+
+  const cuerpo = $("cuerpo");
+  cuerpo.innerHTML = "";
+  meta.franjas.forEach((f, r) => {
+    const tr = document.createElement("tr");
+    const th = document.createElement("td");
+    th.className = "hora"; th.dataset.fila = r;
+    th.textContent = `${fmt(f[0])} - ${fmt(f[1])}`;
+    tr.appendChild(th);
+    meta.dias.forEach((_, c) => {
+      const cel = celdas[r][c];
+      const cat = meta.categorias[cel.categoria] || { color: "#64748b" };
+      const td = document.createElement("td");
+      td.className = "celda"; td.dataset.r = r; td.dataset.c = c;
+      const box = document.createElement("div");
+      box.className = "c" + (esLibre(cel) ? " libre" : "");
+      box.style.setProperty("--col", cat.color);
+      const s = document.createElement("strong"); s.textContent = cel.titulo;
+      box.appendChild(s);
+      if (cel.detalle) { const sp = document.createElement("span"); sp.textContent = cel.detalle; box.appendChild(sp); }
+      td.appendChild(box);
+      tr.appendChild(td);
+    });
+    cuerpo.appendChild(tr);
+  });
+
+  // paleta con horas semanales
+  const min = {};
+  Object.keys(meta.categorias).forEach(k => min[k] = 0);
+  celdas.forEach((fila, r) => fila.forEach(c => { if (c.categoria in min) min[c.categoria] += aMin(meta.franjas[r][1]) - aMin(meta.franjas[r][0]); }));
+  const pal = $("paleta");
+  pal.innerHTML = '<span class="rot">Categoría:</span>';
+  Object.entries(meta.categorias).forEach(([id, c]) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "cat"; b.dataset.id = id; b.style.setProperty("--c", c.color);
+    b.innerHTML = '<span class="punto"></span><span class="n"></span><span class="horas"></span>';
+    b.querySelector(".n").textContent = c.nombre;
+    const h = min[id] / 60;
+    b.querySelector(".horas").textContent = `${h % 1 === 0 ? h : h.toFixed(1)} h/sem`;
+    pal.appendChild(b);
+  });
+
+  $("btnDeshacer").disabled = !historial.length;
+  $("btnRehacer").disabled = !futuro.length;
+  actualizarSel();
+}
+
+/* ---------- Cambios con deshacer ---------- */
+function instantanea() {
+  historial.push(JSON.stringify(celdas));
+  if (historial.length > 100) historial.shift();
+  futuro = [];
+}
+function cambiar(fn) {
+  instantanea();
+  celdasSel().forEach(([r, c]) => { celdas[r][c] = fn({ ...celdas[r][c] }); });
+  dibujar(); guardar();
+}
+function deshacer() {
+  if (!historial.length) return;
+  futuro.push(JSON.stringify(celdas));
+  celdas = JSON.parse(historial.pop());
+  dibujar(); guardar();
+}
+function rehacer() {
+  if (!futuro.length) return;
+  historial.push(JSON.stringify(celdas));
+  celdas = JSON.parse(futuro.pop());
+  dibujar(); guardar();
+}
+
+function ponerTitulo(v) {
+  v = v.trim();
+  if (!v) return cambiar(() => ({ ...CELDA_LIBRE }));
+  cambiar(c => ({ ...c, titulo: v, categoria: c.categoria === "libre" ? ultimaCat : c.categoria, detalle: esLibre(c) ? "" : c.detalle }));
+}
+function ponerCategoria(id) {
+  if (id !== "libre") ultimaCat = id;
+  cambiar(c => {
+    if (id === "libre") return { ...CELDA_LIBRE };
+    const vacio = esLibre(c) || !c.titulo;
+    return { categoria: id, titulo: vacio ? meta.categorias[id].nombre : c.titulo, detalle: esLibre(c) ? "" : c.detalle };
+  });
+}
+
+/* ---------- Edición dentro de la casilla ---------- */
+function editar(inicial) {
+  const td = tdDe(sel.ar, sel.ac);
+  if (!td) return;
+  const box = td.querySelector(".c");
+  const input = document.createElement("input");
+  input.className = "inline";
+  const actual = celdas[sel.ar][sel.ac];
+  input.value = inicial !== null ? inicial : (esLibre(actual) ? "" : actual.titulo);
+  box.replaceChildren(input);
+  editando = true;
+  input.focus();
+  if (inicial !== null) input.setSelectionRange(input.value.length, input.value.length); else input.select();
+
+  let listo = false;
+  const terminar = (guardarCambio, dr, dc) => {
+    if (listo) return;
+    listo = true; editando = false;
+    if (guardarCambio) ponerTitulo(input.value); else dibujar();
+    if (dr || dc) mover(dr, dc, false);
+    input.blur();
+  };
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); terminar(true, 1, 0); }
+    else if (e.key === "Tab") { e.preventDefault(); terminar(true, 0, e.shiftKey ? -1 : 1); }
+    else if (e.key === "Escape") { e.preventDefault(); terminar(false, 0, 0); }
+  });
+  input.addEventListener("blur", () => terminar(true, 0, 0));
+}
+
+/* ---------- Ratón ---------- */
+const cuerpo = $("cuerpo");
+function soltarFoco() { const a = document.activeElement; if (a && a !== document.body && a.tagName !== "TABLE") a.blur(); }
+
+cuerpo.addEventListener("mousedown", (e) => {
+  if (e.target.closest("input")) return;
+  const td = e.target.closest("td");
+  if (!td) return;
+  soltarFoco();
+  if (td.classList.contains("hora")) {
+    const r = +td.dataset.fila;
+    sel = { ar: r, ac: 0, fr: r, fc: meta.dias.length - 1 };
+    actualizarSel(); e.preventDefault(); return;
+  }
+  const r = +td.dataset.r, c = +td.dataset.c;
+  if (e.shiftKey) { sel = { ...sel, fr: r, fc: c }; }
+  else { sel = { ar: r, ac: c, fr: r, fc: c }; arrastrando = true; }
+  actualizarSel();
+  e.preventDefault();
+});
+cuerpo.addEventListener("mouseover", (e) => {
+  if (!arrastrando) return;
+  const td = e.target.closest("td.celda");
+  if (!td) return;
+  sel = { ...sel, fr: +td.dataset.r, fc: +td.dataset.c };
+  actualizarSel();
+});
+document.addEventListener("mouseup", () => { arrastrando = false; });
+cuerpo.addEventListener("dblclick", (e) => { if (e.target.closest("td.celda") && !e.target.closest("input")) editar(null); });
+
+$("encabezado").addEventListener("click", (e) => {
+  const th = e.target.closest("th");
+  if (!th) return;
+  soltarFoco();
+  if (th.dataset.todo) sel = { ar: 0, ac: 0, fr: celdas.length - 1, fc: meta.dias.length - 1 };
+  else { const c = +th.dataset.col; sel = { ar: 0, ac: c, fr: celdas.length - 1, fc: c }; }
+  actualizarSel();
+});
+
+/* ---------- Barra de fórmula y paleta ---------- */
+$("fTitulo").addEventListener("change", (e) => ponerTitulo(e.target.value));
+$("fDetalle").addEventListener("change", (e) => {
+  const v = e.target.value.trim();
+  cambiar(c => esLibre(c) ? c : { ...c, detalle: v });
+});
+["fTitulo", "fDetalle"].forEach(id => $(id).addEventListener("keydown", (e) => { if (e.key === "Enter") e.target.blur(); }));
+$("paleta").addEventListener("click", (e) => {
+  const b = e.target.closest(".cat");
+  if (b) { ponerCategoria(b.dataset.id); b.blur(); }
+});
+$("nombre").addEventListener("change", (e) => { meta.titulo = e.target.value.trim() || "Mi horario"; guardar(); });
+$("nombre").addEventListener("keydown", (e) => { if (e.key === "Enter") e.target.blur(); });
+
+/* ---------- Teclado ---------- */
+const enCampo = () => { const a = document.activeElement; return a && (a.tagName === "INPUT" || a.tagName === "TEXTAREA"); };
+
+document.addEventListener("keydown", (e) => {
+  if (enCampo() || editando) return;
+  const ctrl = e.ctrlKey || e.metaKey;
+  const k = e.key;
+
+  if (ctrl) {
+    const t = k.toLowerCase();
+    if (t === "z" && !e.shiftKey) { e.preventDefault(); deshacer(); }
+    else if (t === "y" || (t === "z" && e.shiftKey)) { e.preventDefault(); rehacer(); }
+    else if (t === "a") { e.preventDefault(); sel = { ar: 0, ac: 0, fr: celdas.length - 1, fc: meta.dias.length - 1 }; actualizarSel(); }
+    else if (t === "d") {
+      e.preventDefault();
+      const { r1, r2, c1, c2 } = rango();
+      if (r2 > r1) { instantanea(); for (let c = c1; c <= c2; c++) for (let r = r1 + 1; r <= r2; r++) celdas[r][c] = { ...celdas[r1][c] }; dibujar(); guardar(); }
+    }
+    else if (t === "r") {
+      e.preventDefault();
+      const { r1, r2, c1, c2 } = rango();
+      if (c2 > c1) { instantanea(); for (let r = r1; r <= r2; r++) for (let c = c1 + 1; c <= c2; c++) celdas[r][c] = { ...celdas[r][c1] }; dibujar(); guardar(); }
+    }
+    return;
+  }
+  if (e.altKey) return;
+
+  if (k.startsWith("Arrow")) {
+    e.preventDefault();
+    const d = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] }[k];
+    mover(d[0], d[1], e.shiftKey);
+  } else if (k === "Tab") { e.preventDefault(); mover(0, e.shiftKey ? -1 : 1, false); }
+  else if (k === "Delete" || k === "Backspace") { e.preventDefault(); cambiar(() => ({ ...CELDA_LIBRE })); }
+  else if (k === "Enter" || k === "F2") { e.preventDefault(); editar(null); }
+  else if (k.length === 1) { e.preventDefault(); editar(k); }
+});
+
+/* ---------- Copiar, cortar y pegar (compatible con Excel) ---------- */
+function textoCopia() {
+  const { r1, r2, c1, c2 } = rango();
+  const filas = [];
+  for (let r = r1; r <= r2; r++) {
+    const fila = [];
+    for (let c = c1; c <= c2; c++) fila.push({ ...celdas[r][c] });
+    filas.push(fila);
+  }
+  const txt = filas.map(f => f.map(c => esLibre(c) ? "" : (c.detalle ? `${c.titulo} - ${c.detalle}` : c.titulo)).join("\t")).join("\n");
+  clip = { filas, txt };
+  return txt;
+}
+document.addEventListener("copy", (e) => {
+  if (enCampo() || editando) return;
+  e.clipboardData.setData("text/plain", textoCopia());
+  e.preventDefault();
+});
+document.addEventListener("cut", (e) => {
+  if (enCampo() || editando) return;
+  e.clipboardData.setData("text/plain", textoCopia());
+  e.preventDefault();
+  cambiar(() => ({ ...CELDA_LIBRE }));
+});
+document.addEventListener("paste", (e) => {
+  if (enCampo() || editando) return;
+  e.preventDefault();
+  const txt = (e.clipboardData.getData("text/plain") || "").replace(/\r/g, "");
+  let datos;
+  if (clip && clip.txt === txt) datos = clip.filas.map(f => f.map(c => ({ ...c })));
+  else datos = txt.replace(/\n$/, "").split("\n").map(l => l.split("\t").map(t => {
+    t = t.trim();
+    return t ? { categoria: ultimaCat, titulo: t, detalle: "" } : { ...CELDA_LIBRE };
+  }));
+  if (!datos.length) return;
+
+  const { r1, r2, c1, c2 } = rango();
+  instantanea();
+  if (datos.length === 1 && datos[0].length === 1 && (r2 > r1 || c2 > c1)) {
+    for (let r = r1; r <= r2; r++) for (let c = c1; c <= c2; c++) celdas[r][c] = { ...datos[0][0] };
+  } else {
+    datos.forEach((fila, i) => fila.forEach((cel, j) => {
+      const r = r1 + i, c = c1 + j;
+      if (r < celdas.length && c < meta.dias.length) celdas[r][c] = { ...cel };
+    }));
+    sel = { ar: r1, ac: c1, fr: Math.min(celdas.length - 1, r1 + datos.length - 1), fc: Math.min(meta.dias.length - 1, c1 + datos[0].length - 1) };
+  }
+  dibujar(); guardar();
+});
+
+/* ---------- Botones de arriba ---------- */
+$("btnDeshacer").addEventListener("click", (e) => { deshacer(); e.currentTarget.blur(); });
+$("btnRehacer").addEventListener("click", (e) => { rehacer(); e.currentTarget.blur(); });
+$("btnDescargar").addEventListener("click", (e) => {
+  const blob = new Blob([JSON.stringify(aJson(), null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = "horario.json";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  e.currentTarget.blur();
+});
+$("btnImportar").addEventListener("click", (e) => { $("archivo").click(); e.currentTarget.blur(); });
+$("archivo").addEventListener("change", (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  f.text().then(t => { cargarJson(JSON.parse(t)); dibujar(); guardar(); })
+    .catch(err => alert("El archivo no es un horario válido: " + err.message));
+  e.target.value = "";
+});
+$("btnBlanco").addEventListener("click", (e) => {
+  e.currentTarget.blur();
+  if (!confirm("Se vacían todas las casillas (puedes deshacerlo con Ctrl+Z). ¿Continuar?")) return;
+  instantanea();
+  celdas = celdas.map(f => f.map(() => ({ ...CELDA_LIBRE })));
+  dibujar(); guardar();
+});
+$("btnReset").addEventListener("click", (e) => {
+  e.currentTarget.blur();
+  if (!confirm("Se reemplaza todo por el horario de ejemplo. ¿Continuar?")) return;
+  cargarJson(EJEMPLO); dibujar(); guardar();
+});
+
+/* ---------- Inicio ---------- */
+(function iniciar() {
+  let ok = false;
+  try {
+    const g = localStorage.getItem(CLAVE);
+    if (g) {
+      const d = JSON.parse(g);
+      if (d.meta && d.celdas && d.celdas.length === d.meta.franjas.length) { meta = d.meta; celdas = d.celdas; ok = true; }
+    }
+  } catch (e) {}
+  if (!ok) cargarJson(EJEMPLO);
+  dibujar();
+})();
+</script>
+</body>
+</html>

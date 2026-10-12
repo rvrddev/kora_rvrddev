@@ -1,0 +1,409 @@
+{
+  "titulo": "Mi horario: clases y chamba",
+  "subtitulo": "Cursos de la universidad y turnos de chamba",
+  "dias": [
+    "Lunes",
+    "Martes",
+    "Miércoles",
+    "Jueves",
+    "Viernes",
+    "Sábado",
+    "Domingo"
+  ],
+  "franjas": [
+    [
+      "07:00",
+      "07:50"
+    ],
+    [
+      "07:50",
+      "08:40"
+    ],
+    [
+      "08:40",
+      "09:30"
+    ],
+    [
+      "09:30",
+      "10:20"
+    ],
+    [
+      "10:20",
+      "11:10"
+    ],
+    [
+      "11:10",
+      "12:00"
+    ],
+    [
+      "12:00",
+      "12:50"
+    ],
+    [
+      "12:50",
+      "13:40"
+    ],
+    [
+      "13:40",
+      "14:30"
+    ],
+    [
+      "14:30",
+      "15:20"
+    ],
+    [
+      "15:20",
+      "16:10"
+    ],
+    [
+      "16:30",
+      "17:20"
+    ],
+    [
+      "17:20",
+      "18:10"
+    ],
+    [
+      "18:10",
+      "19:00"
+    ],
+    [
+      "19:00",
+      "19:50"
+    ],
+    [
+      "19:50",
+      "20:40"
+    ],
+    [
+      "20:40",
+      "21:30"
+    ],
+    [
+      "21:30",
+      "22:20"
+    ],
+    [
+      "22:20",
+      "23:10"
+    ],
+    [
+      "23:10",
+      "24:00"
+    ]
+  ],
+  "categorias": {
+    "estudio": {
+      "nombre": "Estudio",
+      "color": "#2f6fdf"
+    },
+    "trabajo": {
+      "nombre": "Trabajo",
+      "color": "#d98a0b"
+    },
+    "entrenamiento": {
+      "nombre": "Entrenamiento",
+      "color": "#1f9d6b"
+    },
+    "proyecto": {
+      "nombre": "Proyecto",
+      "color": "#8a4fd6"
+    },
+    "libre": {
+      "nombre": "Libre",
+      "color": "#8b97a8"
+    }
+  },
+  "_ayuda": "dias: 1=Lunes ... 7=Domingo. Un bloque ocupa todas las franjas que caen dentro de desde-hasta.",
+  "bloques": [
+    {
+      "dias": [
+        1
+      ],
+      "desde": "07:50",
+      "hasta": "09:30",
+      "categoria": "estudio",
+      "titulo": "Física III",
+      "detalle": "Ciclo IV - A"
+    },
+    {
+      "dias": [
+        1,
+        5
+      ],
+      "desde": "10:20",
+      "hasta": "15:20",
+      "categoria": "trabajo",
+      "titulo": "Chamba",
+      "detalle": "Turno 10 AM - 3 PM"
+    },
+    {
+      "dias": [
+        1
+      ],
+      "desde": "16:30",
+      "hasta": "19:00",
+      "categoria": "estudio",
+      "titulo": "Arquitectura del Computador",
+      "detalle": "Ciclo VIII - A"
+    },
+    {
+      "dias": [
+        1,
+        2,
+        4,
+        5,
+        6
+      ],
+      "desde": "19:50",
+      "hasta": "20:40",
+      "categoria": "proyecto",
+      "titulo": "Programacion",
+      "detalle": ""
+    },
+    {
+      "dias": [
+        1,
+        2,
+        4,
+        5,
+        6
+      ],
+      "desde": "20:40",
+      "hasta": "21:30",
+      "categoria": "proyecto",
+      "titulo": "Edicion de videos",
+      "detalle": ""
+    },
+    {
+      "dias": [
+        1,
+        2,
+        4,
+        5,
+        6
+      ],
+      "desde": "21:30",
+      "hasta": "22:20",
+      "categoria": "proyecto",
+      "titulo": "modelamiento 3d",
+      "detalle": ""
+    },
+    {
+      "dias": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "desde": "22:20",
+      "hasta": "24:00",
+      "categoria": "estudio",
+      "titulo": "Repaso y estudio",
+      "detalle": ""
+    },
+    {
+      "dias": [
+        2,
+        4
+      ],
+      "desde": "07:50",
+      "hasta": "08:40",
+      "categoria": "proyecto",
+      "titulo": "Programacion",
+      "detalle": ""
+    },
+    {
+      "dias": [
+        2,
+        4
+      ],
+      "desde": "08:40",
+      "hasta": "09:30",
+      "categoria": "proyecto",
+      "titulo": "Edicion de videos",
+      "detalle": ""
+    },
+    {
+      "dias": [
+        2,
+        4
+      ],
+      "desde": "09:30",
+      "hasta": "10:20",
+      "categoria": "proyecto",
+      "titulo": "modelamiento 3d",
+      "detalle": ""
+    },
+    {
+      "dias": [
+        2,
+        4
+      ],
+      "desde": "12:00",
+      "hasta": "19:00",
+      "categoria": "trabajo",
+      "titulo": "Chamba",
+      "detalle": "Turno 12 PM - 7 PM"
+    },
+    {
+      "dias": [
+        3
+      ],
+      "desde": "10:20",
+      "hasta": "12:00",
+      "categoria": "estudio",
+      "titulo": "Física III",
+      "detalle": "Ciclo IV - A"
+    },
+    {
+      "dias": [
+        3
+      ],
+      "desde": "12:50",
+      "hasta": "14:30",
+      "categoria": "proyecto",
+      "titulo": "Programacion",
+      "detalle": ""
+    },
+    {
+      "dias": [
+        3
+      ],
+      "desde": "14:30",
+      "hasta": "15:20",
+      "categoria": "proyecto",
+      "titulo": "Edicion de videos",
+      "detalle": ""
+    },
+    {
+      "dias": [
+        3
+      ],
+      "desde": "15:20",
+      "hasta": "16:10",
+      "categoria": "proyecto",
+      "titulo": "modelamiento 3d",
+      "detalle": ""
+    },
+    {
+      "dias": [
+        3
+      ],
+      "desde": "17:20",
+      "hasta": "19:00",
+      "categoria": "estudio",
+      "titulo": "Administración y Gestión (P)",
+      "detalle": "Ciclo VI - B"
+    },
+    {
+      "dias": [
+        3
+      ],
+      "desde": "19:00",
+      "hasta": "20:40",
+      "categoria": "estudio",
+      "titulo": "Inglés IV",
+      "detalle": "Ciclo VI - A"
+    },
+    {
+      "dias": [
+        5
+      ],
+      "desde": "08:40",
+      "hasta": "10:20",
+      "categoria": "estudio",
+      "titulo": "Física III",
+      "detalle": "Ciclo IV - A"
+    },
+    {
+      "dias": [
+        5
+      ],
+      "desde": "17:20",
+      "hasta": "19:00",
+      "categoria": "estudio",
+      "titulo": "Administración y Gestión (T)",
+      "detalle": "Ciclo VI - B"
+    },
+    {
+      "dias": [
+        6
+      ],
+      "desde": "07:50",
+      "hasta": "13:40",
+      "categoria": "trabajo",
+      "titulo": "Chamba",
+      "detalle": "Turno 8 AM - 2 PM"
+    },
+    {
+      "dias": [
+        6
+      ],
+      "desde": "17:20",
+      "hasta": "19:50",
+      "categoria": "entrenamiento",
+      "titulo": "Fuchibol",
+      "detalle": ""
+    },
+    {
+      "dias": [
+        7
+      ],
+      "desde": "09:30",
+      "hasta": "10:20",
+      "categoria": "proyecto",
+      "titulo": "Programacion",
+      "detalle": ""
+    },
+    {
+      "dias": [
+        7
+      ],
+      "desde": "10:20",
+      "hasta": "11:10",
+      "categoria": "proyecto",
+      "titulo": "Edicion de videos",
+      "detalle": ""
+    },
+    {
+      "dias": [
+        7
+      ],
+      "desde": "11:10",
+      "hasta": "12:00",
+      "categoria": "proyecto",
+      "titulo": "modelamiento 3d",
+      "detalle": ""
+    },
+    {
+      "dias": [
+        7
+      ],
+      "desde": "12:00",
+      "hasta": "12:50",
+      "categoria": "proyecto",
+      "titulo": "Proyecto",
+      "detalle": ""
+    },
+    {
+      "dias": [
+        7
+      ],
+      "desde": "13:40",
+      "hasta": "22:20",
+      "categoria": "trabajo",
+      "titulo": "Chamba",
+      "detalle": "Turno 2 PM - 10 PM"
+    }
+  ],
+  "reglasLibres": [],
+  "porDefecto": {
+    "categoria": "libre",
+    "titulo": "Libre",
+    "detalle": ""
+  }
+}
