@@ -7,6 +7,7 @@
 <meta name="theme-color" content="#11151c" media="(prefers-color-scheme: dark)">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Mi Horario">
 <title>Mi horario</title>
 <style>
   :root {
@@ -193,7 +194,8 @@
     dialog { margin:auto; border-radius:26px; }
   }
 </style>
-<link rel="manifest" href="manifest.json">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icon-192.png">
 </head>
 <body>
 
@@ -277,6 +279,7 @@
     </div>
     <div class="campo"><label class="etq" for="mNombre">Nombre del horario</label><input type="text" id="mNombre" autocomplete="off"></div>
     <div class="lista">
+      <button class="item" id="mInstalar"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>Instalar aplicación</button>
       <button class="item" id="mRehacer"><svg viewBox="0 0 24 24"><path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 000 12h3"/></svg>Rehacer</button>
       <button class="item" id="mDescargar"><svg viewBox="0 0 24 24"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>Descargar JSON</button>
       <button class="item" id="mImportar"><svg viewBox="0 0 24 24"><path d="M12 16V5M7 9l5-5 5 5M5 20h14"/></svg>Importar JSON</button>
@@ -649,10 +652,40 @@ $("mReset").addEventListener("click", () => {
   render();
   setInterval(() => { if (!document.querySelector("dialog[open]") && vista === "dia") renderDia(); }, 60000);
 })();
+// Instalación de la PWA (Android/desktop compatibles e instrucciones para iOS)
+let instalacionPendiente = null;
+window.addEventListener('beforeinstallprompt', (event) => {
+  event.preventDefault();
+  instalacionPendiente = event;
+});
+window.addEventListener('appinstalled', () => {
+  instalacionPendiente = null;
+  $("mInstalar").hidden = true;
+  aviso('Aplicación instalada');
+});
+if (window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true) {
+  $("mInstalar").hidden = true;
+}
+$("mInstalar").addEventListener('click', async () => {
+  if (instalacionPendiente) {
+    instalacionPendiente.prompt();
+    await instalacionPendiente.userChoice;
+    instalacionPendiente = null;
+    return;
+  }
+
+  const esIOS = /iphone|ipad|ipod/i.test(navigator.userAgent)
+    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const mensaje = esIOS
+    ? 'Para instalarla en iPhone o iPad: toca Compartir y luego “Agregar a pantalla de inicio”.'
+    : 'Abre el menú del navegador y elige “Instalar aplicación” o “Agregar a pantalla de inicio”. Si no aparece, abre el sitio publicado con HTTPS y espera unos segundos.';
+  alert(mensaje);
+});
+
 // Registrar Service Worker para PWA
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js')
+    navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' })
       .then((reg) => console.log('Service Worker registrado con éxito:', reg.scope))
       .catch((err) => console.log('Error al registrar el Service Worker:', err));
   });
