@@ -2,194 +2,319 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Editor de horario</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f3f0e9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#11151c" media="(prefers-color-scheme: dark)">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Mi horario</title>
 <style>
   :root {
-    --fondo: #eef1f5; --papel: #ffffff; --tinta: #16202e; --tinta-suave: #5b6778;
-    --linea: #d6dce5; --hora-fondo: #f5f7fa; --sel: #0b5cff; --sel-fondo: #dbe8ff;
+    --fondo:#f3f0e9; --papel:#ffffff; --papel2:#faf8f4; --tinta:#1b2430; --suave:#667085; --linea:#e4dfd4;
+    --acento:#0e7a8c; --acento-fondo:rgba(14,122,140,.09); --peligro:#b42318; --rh:46px;
+    --sombra:0 6px 24px rgba(27,36,48,.12);
   }
-  * { box-sizing: border-box; }
-  body { margin: 0; padding: 20px 16px 36px; background: var(--fondo); color: var(--tinta);
-    font-family: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif; }
-  .contenedor { max-width: 1280px; margin: 0 auto; }
-  button { font: inherit; cursor: pointer; }
-  button:focus-visible, input:focus-visible { outline: 3px solid #16202e; outline-offset: 2px; }
+  @media (prefers-color-scheme: dark) {
+    :root { --fondo:#11151c; --papel:#1a212b; --papel2:#161c25; --tinta:#e9eef5; --suave:#93a0b3; --linea:#2b3441;
+      --acento:#35b6c9; --acento-fondo:rgba(53,182,201,.12); --peligro:#ff8a80; --sombra:0 6px 24px rgba(0,0,0,.45); }
+  }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html { color-scheme:light dark; }
+  body { margin:0; background:var(--fondo); color:var(--tinta);
+    font:16px/1.35 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; -webkit-text-size-adjust:100%; }
+  body:has(dialog[open]) { overflow:hidden; }
+  button { font:inherit; color:inherit; cursor:pointer; border:0; background:none; padding:0; touch-action:manipulation; }
+  button:focus-visible, input:focus-visible, select:focus-visible { outline:3px solid var(--acento); outline-offset:2px; }
+  svg { width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; flex:none; }
+  [hidden] { display:none !important; }
 
-  .tope { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 12px; }
-  #nombre { flex: 1 1 260px; min-width: 200px; font: inherit; font-size: 22px; font-weight: 750; letter-spacing: -0.02em;
-    padding: 6px 10px; color: var(--tinta); background: transparent; border: 2px solid transparent; border-radius: 8px; }
-  #nombre:hover { border-color: var(--linea); }
-  #nombre:focus { background: #fff; border-color: var(--tinta); outline: none; }
+  /* ---------- Cabecera ---------- */
+  .top { position:sticky; top:0; z-index:20; background:color-mix(in srgb,var(--fondo) 88%,transparent);
+    -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); padding-top:env(safe-area-inset-top); }
+  .top-in { max-width:1180px; margin:0 auto; padding:10px 14px; display:flex; align-items:center; gap:8px; min-height:60px; }
+  .marca { flex:1; min-width:0; }
+  .marca h1 { margin:0; font-size:20px; font-weight:800; letter-spacing:-.02em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .marca p { margin:1px 0 0; font-size:13px; color:var(--suave); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .ic { width:44px; height:44px; display:grid; place-items:center; border-radius:14px; background:var(--papel); border:1px solid var(--linea); }
+  .ic:active { transform:scale(.95); }
+  .ic:disabled { opacity:.35; }
 
-  .btn { padding: 8px 14px; font-size: 14px; font-weight: 600; color: var(--tinta); background: var(--papel);
-    border: 1px solid var(--linea); border-radius: 8px; }
-  .btn:hover:not(:disabled) { border-color: var(--tinta); }
-  .btn:disabled { opacity: .45; cursor: default; }
-  .btn.principal { background: var(--tinta); color: #fff; border-color: var(--tinta); }
-  .btn.peligro { color: #b42318; border-color: #f0b8b3; }
-  .grupo { display: flex; flex-wrap: wrap; gap: 8px; }
+  main { max-width:1180px; margin:0 auto; padding:6px 14px calc(150px + env(safe-area-inset-bottom)); }
 
-  /* Paleta de categorías */
-  .paleta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 10px; }
-  .paleta .rot { font-size: 13px; font-weight: 650; color: var(--tinta-suave); margin-right: 2px; }
-  .cat { --c: #888; display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; font-size: 14px; font-weight: 650;
-    color: var(--tinta); background: var(--papel); border: 2px solid var(--linea); border-radius: 999px; }
-  .cat .punto { width: 11px; height: 11px; border-radius: 50%; background: var(--c); }
-  .cat .horas { font-weight: 500; font-size: 12px; color: var(--tinta-suave); }
-  .cat:hover { border-color: var(--c); }
-  .cat.activa { border-color: var(--c); box-shadow: inset 0 0 0 1px var(--c); }
+  /* ---------- Navegación Día / Semana ---------- */
+  .vistas { position:fixed; left:0; right:0; bottom:0; z-index:30; display:flex; background:var(--papel);
+    border-top:1px solid var(--linea); padding:6px 10px calc(6px + env(safe-area-inset-bottom)); gap:6px; }
+  .vistas button { flex:1; display:flex; flex-direction:column; align-items:center; gap:2px; padding:7px 0; border-radius:14px;
+    font-size:12px; font-weight:700; color:var(--suave); }
+  .vistas button[aria-selected="true"] { color:var(--acento); background:var(--acento-fondo); }
 
-  /* Barra de fórmula */
-  .formula { display: grid; grid-template-columns: auto 1fr auto 1fr; gap: 8px 10px; align-items: center; margin-bottom: 10px;
-    padding: 10px 12px; background: var(--papel); border: 1px solid var(--linea); border-radius: 10px; }
-  .formula label { font-size: 13px; font-weight: 650; color: var(--tinta-suave); }
-  .formula input { min-width: 0; padding: 8px 10px; font: inherit; font-size: 14px; border: 1px solid var(--linea); border-radius: 8px; color: var(--tinta); }
-  .formula input:focus { outline: none; border-color: var(--sel); box-shadow: 0 0 0 2px var(--sel-fondo); }
+  .fab { position:fixed; right:16px; bottom:calc(84px + env(safe-area-inset-bottom)); z-index:25; width:58px; height:58px; border-radius:20px;
+    display:grid; place-items:center; background:var(--tinta); color:var(--papel); box-shadow:var(--sombra); }
+  .fab svg { width:26px; height:26px; stroke-width:2.4; }
+  .fab:active { transform:scale(.94); }
 
-  /* Cuadrícula */
-  .tabla-wrap { overflow: auto; max-height: 68vh; background: var(--papel); border: 1px solid var(--linea); border-radius: 10px; }
-  table { width: 100%; min-width: 980px; border-collapse: separate; border-spacing: 0; user-select: none; -webkit-user-select: none; }
-  th, td { padding: 3px; border-right: 1px solid var(--linea); border-bottom: 1px solid var(--linea); text-align: center; }
-  th:last-child, td:last-child { border-right: 0; }
-  tbody tr:last-child td { border-bottom: 0; }
-  thead th { position: sticky; top: 0; z-index: 2; padding: 11px 6px; background: #1b2635; color: #fff; font-size: 14px; font-weight: 650; cursor: pointer; }
-  thead th:hover { background: #2a3a50; }
-  thead th.hoy { background: #0e7a8c; }
-  thead th:first-child { left: 0; z-index: 3; }
-  td.hora { position: sticky; left: 0; z-index: 1; width: 122px; padding: 6px 8px; background: var(--hora-fondo);
-    color: var(--tinta-suave); font-size: 12px; font-weight: 650; white-space: nowrap; cursor: pointer; }
-  td.hora:hover { background: #e6ebf2; }
-  td.celda { height: 48px; min-width: 118px; cursor: cell; }
+  /* ---------- Vista Día ---------- */
+  .tira { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; margin:6px 0 14px; }
+  .dchip { display:flex; flex-direction:column; align-items:center; gap:5px; padding:9px 0 8px; border-radius:14px; background:var(--papel);
+    border:1px solid var(--linea); font-size:13px; font-weight:700; color:var(--suave); min-width:0; }
+  .dchip .pts { display:flex; gap:2px; height:6px; }
+  .dchip .pts i { width:6px; height:6px; border-radius:50%; }
+  .dchip.hoy { color:var(--acento); }
+  .dchip.on { background:var(--tinta); border-color:var(--tinta); color:var(--papel); }
+  .dchip.on.hoy { color:var(--papel); }
 
-  .c { display: flex; flex-direction: column; justify-content: center; height: 100%; min-height: 40px; padding: 4px 7px;
-    border-radius: 6px; background: var(--col); color: #fff; line-height: 1.25; overflow: hidden; }
-  .c strong { font-size: 12px; font-weight: 700; }
-  .c span { font-size: 11px; opacity: .9; }
-  .c.libre { opacity: .85; }
-  td.sel { background: var(--sel-fondo); }
-  td.sel .c { box-shadow: 0 0 0 2px var(--sel); }
-  td.activo .c { box-shadow: 0 0 0 3px #0a3fb3; }
-  .c input.inline { width: 100%; padding: 3px 4px; font: inherit; font-size: 12px; font-weight: 700; text-align: center; color: var(--tinta);
-    background: #fff; border: 0; border-radius: 4px; outline: 2px solid #0a3fb3; }
+  .cab-dia { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; }
+  .cab-dia h2 { margin:0; font-size:28px; font-weight:800; letter-spacing:-.03em; }
+  .badge { font-size:12px; font-weight:800; color:#fff; background:var(--acento); padding:3px 9px; border-radius:99px; }
+  .cab-dia .tot { margin-left:auto; font-size:13px; color:var(--suave); }
+  .barra { display:flex; height:10px; border-radius:99px; overflow:hidden; background:var(--linea); margin:10px 0 8px; }
+  .barra i { display:block; height:100%; }
+  .leyenda { display:flex; gap:8px 14px; overflow-x:auto; padding:2px 0 6px; font-size:13px; color:var(--suave); scrollbar-width:none; }
+  .leyenda::-webkit-scrollbar { display:none; }
+  .leyenda span { display:inline-flex; align-items:center; gap:6px; white-space:nowrap; }
+  .leyenda i { width:10px; height:10px; border-radius:50%; }
+  .leyenda b { color:var(--tinta); font-weight:700; }
 
-  .estado { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 16px; margin-top: 10px; font-size: 13px; color: var(--tinta-suave); }
-  .atajos { margin-top: 10px; padding: 12px 14px; background: var(--papel); border: 1px solid var(--linea); border-radius: 10px; font-size: 13px; line-height: 1.7; color: var(--tinta-suave); }
-  .atajos b { color: var(--tinta); }
-  kbd { padding: 1px 6px; font: 600 12px ui-monospace, Consolas, monospace; background: var(--hora-fondo); border: 1px solid var(--linea); border-bottom-width: 2px; border-radius: 5px; color: var(--tinta); }
+  .linea { display:flex; flex-direction:column; gap:8px; margin-top:12px; }
+  .fila { display:flex; gap:10px; align-items:stretch; }
+  .fila .hora { flex:none; width:68px; padding-top:11px; display:flex; flex-direction:column; gap:2px; font-variant-numeric:tabular-nums; }
+  .fila .hora b { font-size:14px; font-weight:750; }
+  .fila .hora span { font-size:12px; color:var(--suave); }
+  .bloque { flex:1; min-width:0; text-align:left; display:flex; flex-direction:column; justify-content:center; gap:3px;
+    padding:11px 14px; border-radius:16px; border-left:6px solid var(--col); background:var(--papel);
+    min-height:min(calc(var(--n)*20px + 44px),200px); box-shadow:0 1px 0 rgba(0,0,0,.04); }
+  @supports (background:color-mix(in srgb,red 10%,white)) {
+    .bloque { background:color-mix(in srgb,var(--col) 17%,var(--papel)); }
+  }
+  .bloque:active { transform:scale(.99); }
+  .bt { font-size:17px; font-weight:750; letter-spacing:-.01em; line-height:1.2; }
+  .bd { font-size:14px; color:var(--suave); }
+  .bm { font-size:12.5px; color:var(--suave); font-variant-numeric:tabular-nums; }
+  .bm b { color:var(--acento); }
+  .bloque.ahora { outline:2px solid var(--acento); outline-offset:2px; }
+  .bloque.libre { background:transparent; border:2px dashed var(--linea); border-left-width:2px; min-height:48px; padding:8px 14px;
+    flex-direction:row; align-items:center; gap:10px; color:var(--suave); }
+  .bloque.libre .bt { font-size:15px; font-weight:600; color:var(--suave); }
+  .bloque.libre .bm { margin-left:auto; }
+  .bloque.libre.ahora { outline-style:solid; }
 
-  @media (max-width: 700px) {
-    .formula { grid-template-columns: auto 1fr; }
-    #nombre { font-size: 19px; }
+  /* ---------- Vista Semana ---------- */
+  .semana-wrap { overflow:auto; max-height:calc(100vh - 225px); max-height:calc(100dvh - 225px); background:var(--papel);
+    border:1px solid var(--linea); border-radius:18px; overscroll-behavior:contain; -webkit-overflow-scrolling:touch; }
+  .semana { display:grid; grid-template-columns:52px repeat(7,minmax(94px,1fr)); grid-template-rows:44px; grid-auto-rows:var(--rh); min-width:710px; }
+  .sh { position:sticky; top:0; z-index:4; display:grid; place-items:center; background:var(--papel); border-bottom:2px solid var(--linea);
+    border-right:1px solid var(--linea); font-size:14px; font-weight:750; color:var(--suave); }
+  .sh.corner { left:0; z-index:6; }
+  .sh.hoy { color:var(--acento); box-shadow:inset 0 -3px 0 var(--acento); }
+  .st { position:sticky; left:0; z-index:3; background:var(--papel2); border-right:1px solid var(--linea); border-bottom:1px solid var(--linea);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1.15; font-variant-numeric:tabular-nums; }
+  .st b { font-size:12px; font-weight:750; }
+  .st i { font-style:normal; font-size:10px; color:var(--suave); }
+  .wc { position:relative; display:block; border-right:1px solid var(--linea); border-bottom:1px solid var(--linea); width:100%; height:100%; }
+  .wc.hoyc { background:var(--acento-fondo); }
+  button.wc.libre:active { background:var(--linea); }
+  .wb { position:absolute; z-index:1; top:2px; left:3px; right:3px; height:calc(var(--n)*var(--rh) - 4px); text-align:left; overflow:hidden;
+    display:flex; flex-direction:column; justify-content:center; gap:1px; padding:4px 7px 4px 8px; border-radius:9px; border-left:4px solid var(--col);
+    background:var(--col); color:#fff; line-height:1.2; }
+  @supports (background:color-mix(in srgb,red 10%,white)) {
+    .wb { background:color-mix(in srgb,var(--col) 24%,var(--papel)); color:var(--tinta); }
+  }
+  .wb b { font-size:12.5px; font-weight:750; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+  .wb span { font-size:11px; color:var(--suave); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .wb:active { filter:brightness(.95); }
+  .ayuda-sem { margin:8px 2px 0; font-size:12.5px; color:var(--suave); }
+
+  /* ---------- Hojas (editor y menú) ---------- */
+  dialog { border:0; padding:0; color:var(--tinta); background:var(--papel); width:min(100%,540px); max-width:100%;
+    margin:auto auto 0; border-radius:26px 26px 0 0; overflow:hidden; box-shadow:var(--sombra); }
+  dialog::backdrop { background:rgba(10,14,20,.55); }
+  dialog[open] { animation:sube .22s ease-out; }
+  @keyframes sube { from { transform:translateY(36px); opacity:0; } }
+  @media (prefers-reduced-motion:reduce) { dialog[open] { animation:none; } }
+  .hoja { max-height:92vh; max-height:92dvh; overflow:auto; padding:8px 18px calc(18px + env(safe-area-inset-bottom)); overscroll-behavior:contain; }
+  .agarre { width:44px; height:5px; border-radius:9px; background:var(--linea); margin:4px auto 10px; }
+  .hoja-cab { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+  .hoja-cab h2 { margin:0; flex:1; font-size:22px; font-weight:800; letter-spacing:-.02em; }
+  .campo { margin-bottom:14px; }
+  .campo > label, .etq { display:block; margin-bottom:6px; font-size:13px; font-weight:700; color:var(--suave); }
+  .dos { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  input[type=text], select { width:100%; height:48px; padding:0 14px; font:inherit; font-size:16px; color:var(--tinta); background:var(--papel2);
+    border:1.5px solid var(--linea); border-radius:14px; appearance:none; -webkit-appearance:none; }
+  select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M1 1.5l5 5 5-5'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 14px center; padding-right:34px; }
+  input[type=text]:focus, select:focus { outline:none; border-color:var(--acento); box-shadow:0 0 0 3px var(--acento-fondo); }
+  .chips { display:flex; flex-wrap:wrap; gap:8px; }
+  .chips.dias { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; }
+  .chip { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:44px; padding:0 14px; border-radius:14px;
+    background:var(--papel2); border:1.5px solid var(--linea); font-size:14px; font-weight:700; }
+  .chips.dias .chip { padding:0; font-size:13px; }
+  .chip[aria-pressed="true"] { background:var(--tinta); color:var(--papel); border-color:var(--tinta); }
+  .chip.cat i { width:11px; height:11px; border-radius:50%; background:var(--c); flex:none; }
+  .chip.cat[aria-pressed="true"] { background:color-mix(in srgb,var(--c) 22%,var(--papel)); color:var(--tinta); border-color:var(--c); box-shadow:inset 0 0 0 1px var(--c); }
+  .rapido { display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; scrollbar-width:none; margin:0 -18px; padding:0 18px 4px; }
+  .rapido::-webkit-scrollbar { display:none; }
+  .rapido .chip { flex:none; min-height:38px; font-size:13px; font-weight:650; }
+  .nota { min-height:20px; margin:-4px 0 12px; font-size:13px; color:var(--suave); }
+  .nota .aviso { color:var(--peligro); font-weight:650; }
+  .acciones { display:flex; gap:10px; position:sticky; bottom:calc(-18px - env(safe-area-inset-bottom)); margin:0 -18px -18px; padding:12px 18px calc(14px + env(safe-area-inset-bottom));
+    background:var(--papel); border-top:1px solid var(--linea); }
+  .btn { flex:1; min-height:50px; padding:0 18px; border-radius:15px; font-size:16px; font-weight:750; background:var(--papel2); border:1.5px solid var(--linea); }
+  .btn.principal { flex:2; background:var(--tinta); color:var(--papel); border-color:var(--tinta); }
+  .btn.peligro { color:var(--peligro); }
+  .btn:disabled { opacity:.4; }
+  .btn:active { transform:scale(.98); }
+
+  .lista { display:flex; flex-direction:column; gap:8px; margin-top:6px; }
+  .item { display:flex; align-items:center; gap:14px; min-height:54px; padding:0 16px; border-radius:15px; background:var(--papel2);
+    border:1px solid var(--linea); font-size:16px; font-weight:650; text-align:left; width:100%; }
+  .item:disabled { opacity:.4; }
+  .item.peligro { color:var(--peligro); }
+  .pie { margin:14px 2px 0; font-size:12.5px; color:var(--suave); line-height:1.5; }
+
+  .toast { position:fixed; left:50%; bottom:calc(92px + env(safe-area-inset-bottom)); transform:translate(-50%,20px); z-index:60; opacity:0; pointer-events:none;
+    display:flex; align-items:center; gap:14px; max-width:calc(100% - 28px); padding:12px 16px; border-radius:16px; background:var(--tinta); color:var(--papel);
+    font-size:14.5px; font-weight:600; box-shadow:var(--sombra); transition:opacity .2s, transform .2s; }
+  .toast.ver { opacity:1; transform:translate(-50%,0); pointer-events:auto; }
+  .toast button { font-weight:800; color:var(--acento); padding:4px 2px; }
+  @media (prefers-color-scheme: light) { .toast button { color:#7ee0ee; } }
+
+  /* ---------- Pantallas anchas ---------- */
+  @media (min-width:860px) {
+    .vistas { position:static; width:max-content; margin:0 auto 6px; padding:5px; border:1px solid var(--linea); border-radius:18px; }
+    .vistas button { flex-direction:row; gap:8px; padding:9px 22px; font-size:14px; }
+    main { padding-top:12px; padding-bottom:110px; }
+    .fab { bottom:28px; right:28px; }
+    .toast { bottom:30px; }
+    .semana { min-width:0; }
+    .semana-wrap { max-height:calc(100dvh - 250px); }
+    .linea, .cab-dia, .barra, .tira { max-width:720px; margin-left:auto; margin-right:auto; }
+    .cab-dia { margin-top:4px; }
+    .leyenda { max-width:720px; margin:0 auto; flex-wrap:wrap; }
+    dialog { margin:auto; border-radius:26px; }
   }
 </style>
+<link rel="manifest" href="manifest.json">
 </head>
 <body>
-<div class="contenedor">
 
-  <div class="tope">
-    <input id="nombre" aria-label="Nombre del horario" value="Mi horario">
-    <div class="grupo">
-      <button type="button" class="btn" id="btnDeshacer" title="Ctrl+Z">Deshacer</button>
-      <button type="button" class="btn" id="btnRehacer" title="Ctrl+Y">Rehacer</button>
-      <button type="button" class="btn" id="btnImportar">Importar JSON</button>
-      <button type="button" class="btn principal" id="btnDescargar">Descargar JSON</button>
+<header class="top">
+  <div class="top-in">
+    <div class="marca"><h1 id="titulo">Mi horario</h1><p id="sub"></p></div>
+    <button class="ic" id="btnDes" aria-label="Deshacer" title="Deshacer"><svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 010 12h-3"/></svg></button>
+    <button class="ic" id="btnMenu" aria-label="Menú" title="Menú"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="12" cy="19" r="1.2"/></svg></button>
+  </div>
+</header>
+
+<nav class="vistas" role="tablist" aria-label="Vista">
+  <button role="tab" id="tabDia" data-v="dia" aria-selected="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Día</button>
+  <button role="tab" id="tabSem" data-v="semana" aria-selected="false"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 10h18M9 10v11M15 10v11"/></svg>Semana</button>
+</nav>
+
+<main>
+  <section id="vDia" aria-label="Vista por día">
+    <div class="tira" id="tira" role="group" aria-label="Elegir día"></div>
+    <div class="cab-dia" id="cabDia"></div>
+    <div class="barra" id="barra" aria-hidden="true"></div>
+    <div class="leyenda" id="leyDia"></div>
+    <div class="linea" id="linea"></div>
+  </section>
+
+  <section id="vSemana" aria-label="Vista semanal" hidden>
+    <div class="leyenda" id="leySem"></div>
+    <div class="semana-wrap"><div class="semana" id="semana"></div></div>
+    <p class="ayuda-sem">Desliza para ver todos los días. Toca un bloque para editarlo, una casilla vacía para agregar, o el nombre del día para verlo completo.</p>
+  </section>
+</main>
+
+<button class="fab" id="fab" aria-label="Agregar bloque"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+<div class="toast" id="toast" role="status" aria-live="polite"><span id="toastTxt"></span><button id="toastDes" hidden>Deshacer</button></div>
+
+<!-- Editor de bloque -->
+<dialog id="editor" aria-labelledby="edTit">
+  <div class="hoja">
+    <div class="agarre"></div>
+    <div class="hoja-cab">
+      <h2 id="edTit">Nuevo bloque</h2>
+      <button class="ic" id="edCerrar" aria-label="Cerrar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>
+
+    <div class="campo" id="campoRapido" hidden>
+      <span class="etq">Usar uno de tus bloques</span>
+      <div class="rapido" id="edRapido"></div>
+    </div>
+
+    <div class="campo"><span class="etq">Días</span><div class="chips dias" id="edDias"></div></div>
+
+    <div class="dos campo">
+      <div><label class="etq" for="edDesde">Desde</label><select id="edDesde"></select></div>
+      <div><label class="etq" for="edHasta">Hasta</label><select id="edHasta"></select></div>
+    </div>
+    <div class="nota" id="edNota"></div>
+
+    <div class="campo"><span class="etq">Categoría</span><div class="chips" id="edCats"></div></div>
+
+    <div id="edTexto">
+      <div class="campo"><label class="etq" for="edTitulo">Título</label>
+        <input type="text" id="edTitulo" placeholder="Ej: Chamba, Física III…" autocomplete="off" enterkeyhint="next"></div>
+      <div class="campo"><label class="etq" for="edDetalle">Detalle (opcional)</label>
+        <input type="text" id="edDetalle" placeholder="Ej: Turno 12 PM - 7 PM" autocomplete="off" enterkeyhint="done"></div>
+    </div>
+
+    <div class="acciones">
+      <button class="btn peligro" id="edVaciar" hidden>Vaciar</button>
+      <button class="btn principal" id="edGuardar">Guardar</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- Menú -->
+<dialog id="menu" aria-labelledby="menuTit">
+  <div class="hoja">
+    <div class="agarre"></div>
+    <div class="hoja-cab">
+      <h2 id="menuTit">Opciones</h2>
+      <button class="ic" id="menuCerrar" aria-label="Cerrar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="campo"><label class="etq" for="mNombre">Nombre del horario</label><input type="text" id="mNombre" autocomplete="off"></div>
+    <div class="lista">
+      <button class="item" id="mRehacer"><svg viewBox="0 0 24 24"><path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 000 12h3"/></svg>Rehacer</button>
+      <button class="item" id="mDescargar"><svg viewBox="0 0 24 24"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>Descargar JSON</button>
+      <button class="item" id="mImportar"><svg viewBox="0 0 24 24"><path d="M12 16V5M7 9l5-5 5 5M5 20h14"/></svg>Importar JSON</button>
+      <button class="item peligro" id="mBlanco"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>Empezar en blanco</button>
+      <button class="item peligro" id="mReset"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 108-8H7"/><path d="M7 1v6H1" transform="translate(2 0)"/></svg>Volver a mi horario original</button>
+    </div>
+    <p class="pie" id="pie">Todo se guarda solo en este dispositivo. Descarga el JSON de vez en cuando como respaldo o para pasarlo a otro aparato.</p>
     <input type="file" id="archivo" accept=".json,application/json" hidden>
   </div>
-
-  <div class="paleta" id="paleta" role="group" aria-label="Categoría de la selección"></div>
-
-  <div class="formula">
-    <label for="fTitulo">Título</label><input id="fTitulo" placeholder="Ej: Chamba, Física III…" autocomplete="off">
-    <label for="fDetalle">Detalle</label><input id="fDetalle" placeholder="Ej: Turno 12 PM - 7 PM" autocomplete="off">
-  </div>
-
-  <div class="tabla-wrap">
-    <table aria-label="Horario semanal">
-      <thead><tr id="encabezado"></tr></thead>
-      <tbody id="cuerpo"></tbody>
-    </table>
-  </div>
-
-  <div class="estado">
-    <span id="seleccion"></span>
-    <span id="guardado">Guardado automático en este navegador</span>
-  </div>
-
-  <div class="atajos">
-    <b>Cómo usarlo:</b>
-    arrastra sobre las casillas para seleccionar un rango (o toca el nombre de un día o de una hora para seleccionar toda la columna o fila),
-    elige una <b>categoría</b> y escribe el título. Todo lo que cambies se aplica a <b>todas las casillas seleccionadas</b>.<br>
-    <kbd>Flechas</kbd> mover · <kbd>Shift</kbd>+<kbd>Flechas</kbd> ampliar · <kbd>Enter</kbd> o escribir directo para editar ·
-    <kbd>Supr</kbd> vaciar · <kbd>Ctrl</kbd>+<kbd>C</kbd>/<kbd>X</kbd>/<kbd>V</kbd> copiar, cortar, pegar (también desde Excel) ·
-    <kbd>Ctrl</kbd>+<kbd>D</kbd> rellenar hacia abajo · <kbd>Ctrl</kbd>+<kbd>R</kbd> hacia la derecha · <kbd>Ctrl</kbd>+<kbd>Z</kbd> deshacer ·
-    <kbd>Ctrl</kbd>+<kbd>A</kbd> todo.
-    <div style="margin-top:8px"><button type="button" class="btn" id="btnBlanco">Empezar en blanco</button>
-    <button type="button" class="btn peligro" id="btnReset">Volver al ejemplo</button></div>
-  </div>
-</div>
+</dialog>
 
 <script>
 const $ = (id) => document.getElementById(id);
 const CLAVE = "editor-horario-v1";
 const aMin = (hhmm) => { const [h, m] = hhmm.split(":").map(Number); return h * 60 + m; };
-const fmt = (hhmm) => {
+const pad = (n) => String(n).padStart(2, "0");
+const fmt = (hhmm) => {            // "13:40" -> "1:40 PM"
   const [h, m] = hhmm.split(":").map(Number);
-  const h12 = h % 12 === 0 ? 12 : h % 12;
-  return `${String(h12).padStart(2, "0")}:${String(m).padStart(2, "0")} ${h >= 12 ? "PM" : "AM"}`;
+  return `${h % 12 === 0 ? 12 : h % 12}:${pad(m)} ${h >= 12 && h < 24 ? "PM" : "AM"}`;
 };
+const horaCorta = (hhmm) => fmt(hhmm).split(" ");
+const horasTxt = (min) => { const h = Math.floor(min / 60), m = min % 60; return h && m ? `${h} h ${m} min` : h ? `${h} h` : `${m} min`; };
+const esc = (s) => String(s).replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
 const ultimo = (arr, fn) => { for (let i = arr.length - 1; i >= 0; i--) if (fn(arr[i])) return i; return -1; };
-const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-const horasTxt = (min) => { const h = Math.floor(min / 60), m = min % 60; return m ? `${h} h ${m} min` : `${h} h`; };
 
 const CELDA_LIBRE = { categoria: "libre", titulo: "Libre", detalle: "" };
 const esLibre = (c) => c.categoria === "libre" && c.titulo === "Libre" && !c.detalle;
 const igual = (a, b) => a.categoria === b.categoria && a.titulo === b.titulo && a.detalle === b.detalle;
 
-/* Horario de ejemplo: tus clases y tus turnos de chamba */
-const EJEMPLO = {
-  titulo: "Mi horario: clases y chamba",
-  subtitulo: "Cursos de la universidad y turnos de chamba",
-  dias: ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"],
-  franjas: [
-    ["07:00","07:50"],["07:50","08:40"],["08:40","09:30"],["09:30","10:20"],["10:20","11:10"],["11:10","12:00"],
-    ["12:00","12:50"],["12:50","13:40"],["13:40","14:30"],["14:30","15:20"],["15:20","16:10"],["16:30","17:20"],
-    ["17:20","18:10"],["18:10","19:00"],["19:00","19:50"],["19:50","20:40"],["20:40","21:30"],["21:30","22:20"]
-  ],
-  categorias: {
-    estudio: { nombre: "Estudio", color: "#2f6fdf" },
-    trabajo: { nombre: "Trabajo", color: "#d98a0b" },
-    entrenamiento: { nombre: "Entrenamiento", color: "#1f9d6b" },
-    proyecto: { nombre: "Proyecto", color: "#8a4fd6" },
-    libre: { nombre: "Libre", color: "#8b97a8" }
-  },
-  bloques: [
-    { dias: [3], desde: "07:00", hasta: "22:20", categoria: "libre", titulo: "Sin chamba", detalle: "No disponible" },
-    { dias: [1], desde: "10:20", hasta: "15:20", categoria: "trabajo", titulo: "Chamba", detalle: "Turno 10 AM - 3 PM" },
-    { dias: [2], desde: "12:00", hasta: "19:00", categoria: "trabajo", titulo: "Chamba", detalle: "Turno 12 PM - 7 PM" },
-    { dias: [4], desde: "12:00", hasta: "19:00", categoria: "trabajo", titulo: "Chamba", detalle: "Turno 12 PM - 7 PM" },
-    { dias: [5], desde: "10:20", hasta: "15:20", categoria: "trabajo", titulo: "Chamba", detalle: "Turno 10 AM - 3 PM" },
-    { dias: [6], desde: "07:50", hasta: "13:40", categoria: "trabajo", titulo: "Chamba", detalle: "Turno 8 AM - 2 PM" },
-    { dias: [7], desde: "13:40", hasta: "22:20", categoria: "trabajo", titulo: "Chamba", detalle: "Turno 2 PM - 10 PM" },
-    { dias: [1], desde: "07:50", hasta: "09:30", categoria: "estudio", titulo: "Física III", detalle: "Ciclo IV - A" },
-    { dias: [5], desde: "08:40", hasta: "10:20", categoria: "estudio", titulo: "Física III", detalle: "Ciclo IV - A" },
-    { dias: [3], desde: "10:20", hasta: "12:00", categoria: "estudio", titulo: "Física III", detalle: "Ciclo IV - A" },
-    { dias: [1], desde: "16:30", hasta: "19:00", categoria: "estudio", titulo: "Arquitectura del Computador", detalle: "Ciclo VIII - A" },
-    { dias: [3], desde: "17:20", hasta: "19:00", categoria: "estudio", titulo: "Administración y Gestión (P)", detalle: "Ciclo VI - B" },
-    { dias: [5], desde: "17:20", hasta: "19:00", categoria: "estudio", titulo: "Administración y Gestión (T)", detalle: "Ciclo VI - B" },
-    { dias: [3], desde: "19:00", hasta: "20:40", categoria: "estudio", titulo: "Inglés IV", detalle: "Ciclo VI - A" }
-  ],
-  reglasLibres: [],
-  porDefecto: CELDA_LIBRE
-};
+/* Tu horario (viene de horario.json) */
+const EJEMPLO = {"titulo": "Mi horario: clases y chamba", "subtitulo": "Cursos de la universidad y turnos de chamba", "dias": ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"], "franjas": [["07:00", "07:50"], ["07:50", "08:40"], ["08:40", "09:30"], ["09:30", "10:20"], ["10:20", "11:10"], ["11:10", "12:00"], ["12:00", "12:50"], ["12:50", "13:40"], ["13:40", "14:30"], ["14:30", "15:20"], ["15:20", "16:10"], ["16:30", "17:20"], ["17:20", "18:10"], ["18:10", "19:00"], ["19:00", "19:50"], ["19:50", "20:40"], ["20:40", "21:30"], ["21:30", "22:20"], ["22:20", "23:10"], ["23:10", "24:00"]], "categorias": {"estudio": {"nombre": "Estudio", "color": "#2f6fdf"}, "trabajo": {"nombre": "Trabajo", "color": "#d98a0b"}, "entrenamiento": {"nombre": "Entrenamiento", "color": "#1f9d6b"}, "proyecto": {"nombre": "Proyecto", "color": "#8a4fd6"}, "libre": {"nombre": "Libre", "color": "#8b97a8"}}, "bloques": [{"dias": [1], "desde": "07:50", "hasta": "09:30", "categoria": "estudio", "titulo": "Física III", "detalle": "Ciclo IV - A"}, {"dias": [1, 5], "desde": "10:20", "hasta": "15:20", "categoria": "trabajo", "titulo": "Chamba", "detalle": "Turno 10 AM - 3 PM"}, {"dias": [1], "desde": "16:30", "hasta": "19:00", "categoria": "estudio", "titulo": "Arquitectura del Computador", "detalle": "Ciclo VIII - A"}, {"dias": [1, 2, 4, 5, 6], "desde": "19:50", "hasta": "20:40", "categoria": "proyecto", "titulo": "Programacion", "detalle": ""}, {"dias": [1, 2, 4, 5, 6], "desde": "20:40", "hasta": "21:30", "categoria": "proyecto", "titulo": "Edicion de videos", "detalle": ""}, {"dias": [1, 2, 4, 5, 6], "desde": "21:30", "hasta": "22:20", "categoria": "proyecto", "titulo": "modelamiento 3d", "detalle": ""}, {"dias": [1, 2, 3, 4, 5, 6, 7], "desde": "22:20", "hasta": "24:00", "categoria": "estudio", "titulo": "Repaso y estudio", "detalle": ""}, {"dias": [2, 4], "desde": "07:50", "hasta": "08:40", "categoria": "proyecto", "titulo": "Programacion", "detalle": ""}, {"dias": [2, 4], "desde": "08:40", "hasta": "09:30", "categoria": "proyecto", "titulo": "Edicion de videos", "detalle": ""}, {"dias": [2, 4], "desde": "09:30", "hasta": "10:20", "categoria": "proyecto", "titulo": "modelamiento 3d", "detalle": ""}, {"dias": [2, 4], "desde": "12:00", "hasta": "19:00", "categoria": "trabajo", "titulo": "Chamba", "detalle": "Turno 12 PM - 7 PM"}, {"dias": [3], "desde": "10:20", "hasta": "12:00", "categoria": "estudio", "titulo": "Física III", "detalle": "Ciclo IV - A"}, {"dias": [3], "desde": "12:50", "hasta": "14:30", "categoria": "proyecto", "titulo": "Programacion", "detalle": ""}, {"dias": [3], "desde": "14:30", "hasta": "15:20", "categoria": "proyecto", "titulo": "Edicion de videos", "detalle": ""}, {"dias": [3], "desde": "15:20", "hasta": "16:10", "categoria": "proyecto", "titulo": "modelamiento 3d", "detalle": ""}, {"dias": [3], "desde": "17:20", "hasta": "19:00", "categoria": "estudio", "titulo": "Administración y Gestión (P)", "detalle": "Ciclo VI - B"}, {"dias": [3], "desde": "19:00", "hasta": "20:40", "categoria": "estudio", "titulo": "Inglés IV", "detalle": "Ciclo VI - A"}, {"dias": [5], "desde": "08:40", "hasta": "10:20", "categoria": "estudio", "titulo": "Física III", "detalle": "Ciclo IV - A"}, {"dias": [5], "desde": "17:20", "hasta": "19:00", "categoria": "estudio", "titulo": "Administración y Gestión (T)", "detalle": "Ciclo VI - B"}, {"dias": [6], "desde": "07:50", "hasta": "13:40", "categoria": "trabajo", "titulo": "Chamba", "detalle": "Turno 8 AM - 2 PM"}, {"dias": [6], "desde": "17:20", "hasta": "19:50", "categoria": "entrenamiento", "titulo": "Fuchibol", "detalle": ""}, {"dias": [7], "desde": "09:30", "hasta": "10:20", "categoria": "proyecto", "titulo": "Programacion", "detalle": ""}, {"dias": [7], "desde": "10:20", "hasta": "11:10", "categoria": "proyecto", "titulo": "Edicion de videos", "detalle": ""}, {"dias": [7], "desde": "11:10", "hasta": "12:00", "categoria": "proyecto", "titulo": "modelamiento 3d", "detalle": ""}, {"dias": [7], "desde": "12:00", "hasta": "12:50", "categoria": "proyecto", "titulo": "Proyecto", "detalle": ""}, {"dias": [7], "desde": "13:40", "hasta": "22:20", "categoria": "trabajo", "titulo": "Chamba", "detalle": "Turno 2 PM - 10 PM"}], "reglasLibres": [], "porDefecto": {"categoria": "libre", "titulo": "Libre", "detalle": ""}};
 
 let meta, celdas;
-let sel = { ar: 0, ac: 0, fr: 0, fc: 0 };
-let arrastrando = false, editando = false;
-let historial = [], futuro = [], clip = null, ultimaCat = "estudio";
+let vista = "dia", diaSel = 0, primeraVez = true;
+let historial = [], futuro = [], ultimaCat = "estudio", ed = null, tT = null;
+const hoyIdx = () => (new Date().getDay() + 6) % 7;
 
-/* ---------- JSON <-> cuadrícula ---------- */
+/* ---------- JSON <-> cuadrícula (mismo formato de siempre) ---------- */
 function cargarJson(j) {
   ["dias", "franjas", "categorias", "bloques"].forEach(k => { if (!(k in j)) throw new Error(`falta "${k}"`); });
   const reglas = j.reglasLibres || [];
@@ -198,11 +323,10 @@ function cargarJson(j) {
   meta = { titulo: j.titulo || "Mi horario", subtitulo: j.subtitulo || "", dias: j.dias, franjas: j.franjas, categorias };
   celdas = meta.franjas.map(f => meta.dias.map((_, d) => {
     const ini = aMin(f[0]), fin = aMin(f[1]);
-    const i = ultimo(j.bloques, b => b.dias.includes(d + 1) && aMin(b.desde) <= ini && fin <= aMin(b.hasta));
+    const i = ultimo(j.bloques, b => (b.dias || [b.dia]).includes(d + 1) && aMin(b.desde) <= ini && fin <= aMin(b.hasta));
     const x = i >= 0 ? j.bloques[i] : reglas.find(r => aMin(r.desde) <= ini && ini < aMin(r.hasta));
     return x ? { categoria: x.categoria, titulo: x.titulo, detalle: x.detalle || "" } : { ...CELDA_LIBRE };
   }));
-  sel = { ar: 0, ac: 0, fr: 0, fc: 0 };
   historial = []; futuro = [];
 }
 
@@ -219,11 +343,10 @@ function aJson() {
       r = r2 + 1;
     }
   });
-  // une los días que tienen exactamente el mismo bloque
   const bloques = [];
   lista.forEach(b => {
-    const igualB = bloques.find(x => x.desde === b.desde && x.hasta === b.hasta && x.categoria === b.categoria && x.titulo === b.titulo && x.detalle === b.detalle);
-    if (igualB) igualB.dias.push(b.dia);
+    const g = bloques.find(x => x.desde === b.desde && x.hasta === b.hasta && x.categoria === b.categoria && x.titulo === b.titulo && x.detalle === b.detalle);
+    if (g) g.dias.push(b.dia);
     else bloques.push({ dias: [b.dia], desde: b.desde, hasta: b.hasta, categoria: b.categoria, titulo: b.titulo, detalle: b.detalle });
   });
   return {
@@ -234,352 +357,281 @@ function aJson() {
 }
 
 function guardar() {
-  try {
-    localStorage.setItem(CLAVE, JSON.stringify({ meta, celdas }));
-    $("guardado").textContent = "Guardado automático en este navegador";
-  } catch (e) { $("guardado").textContent = "No se pudo guardar en el navegador: descarga el JSON"; }
+  try { localStorage.setItem(CLAVE, JSON.stringify({ meta, celdas })); }
+  catch (e) { $("pie").textContent = "No se pudo guardar en el navegador: descarga el JSON para no perder tus cambios."; }
 }
 
-/* ---------- Selección ---------- */
-function rango() {
-  return { r1: Math.min(sel.ar, sel.fr), r2: Math.max(sel.ar, sel.fr), c1: Math.min(sel.ac, sel.fc), c2: Math.max(sel.ac, sel.fc) };
-}
-function celdasSel() {
-  const { r1, r2, c1, c2 } = rango(), out = [];
-  for (let r = r1; r <= r2; r++) for (let c = c1; c <= c2; c++) out.push([r, c]);
+/* ---------- Cálculos ---------- */
+const dur = (r1, r2) => { let t = 0; for (let r = r1; r <= r2; r++) t += aMin(meta.franjas[r][1]) - aMin(meta.franjas[r][0]); return t; };
+function corridas(c) {
+  const out = []; let r = 0;
+  while (r < celdas.length) {
+    let r2 = r;
+    while (r2 + 1 < celdas.length && igual(celdas[r2 + 1][c], celdas[r][c])) r2++;
+    out.push({ r1: r, r2, cel: celdas[r][c] });
+    r = r2 + 1;
+  }
   return out;
 }
-const tdDe = (r, c) => $("cuerpo").querySelector(`td.celda[data-r="${r}"][data-c="${c}"]`);
-
-function actualizarSel() {
-  const { r1, r2, c1, c2 } = rango();
-  $("cuerpo").querySelectorAll("td.celda").forEach(td => {
-    const r = +td.dataset.r, c = +td.dataset.c;
-    td.classList.toggle("sel", r >= r1 && r <= r2 && c >= c1 && c <= c2);
-    td.classList.toggle("activo", r === sel.ar && c === sel.ac);
-  });
-  const a = celdas[sel.ar][sel.ac];
-  $("fTitulo").value = a.titulo;
-  $("fDetalle").value = a.detalle;
-  document.querySelectorAll(".cat").forEach(b => b.classList.toggle("activa", b.dataset.id === a.categoria));
-
-  const n = (r2 - r1 + 1) * (c2 - c1 + 1);
-  let min = 0;
-  celdasSel().forEach(([r]) => { min += aMin(meta.franjas[r][1]) - aMin(meta.franjas[r][0]); });
-  const dias = c1 === c2 ? meta.dias[c1] : `${meta.dias[c1]} a ${meta.dias[c2]}`;
-  const horas = r1 === r2 ? fmt(meta.franjas[r1][0]) + " - " + fmt(meta.franjas[r1][1]) : fmt(meta.franjas[r1][0]) + " - " + fmt(meta.franjas[r2][1]);
-  $("seleccion").textContent = `${dias} · ${horas} · ${n} casilla${n > 1 ? "s" : ""} · ${horasTxt(min)}`;
+function filaAhora() {
+  const d = new Date(), m = d.getHours() * 60 + d.getMinutes();
+  return meta.franjas.findIndex(f => aMin(f[0]) <= m && m < aMin(f[1]));
 }
-
-function mover(dr, dc, ext) {
-  const R = celdas.length, C = meta.dias.length;
-  const nr = clamp((ext ? sel.fr : sel.ar) + dr, 0, R - 1), nc = clamp((ext ? sel.fc : sel.ac) + dc, 0, C - 1);
-  sel = ext ? { ...sel, fr: nr, fc: nc } : { ar: nr, ac: nc, fr: nr, fc: nc };
-  actualizarSel();
-  const td = tdDe(nr, nc);
-  if (td) td.scrollIntoView({ block: "nearest", inline: "nearest" });
+const catDe = (k) => meta.categorias[k] || { nombre: k, color: "#64748b" };
+function minPorCat(cols) {
+  const min = {}; Object.keys(meta.categorias).forEach(k => min[k] = 0);
+  celdas.forEach((f, r) => cols.forEach(c => { const k = f[c].categoria; min[k] = (min[k] || 0) + dur(r, r); }));
+  return min;
 }
+const hTxt = (m) => { const h = m / 60; return `${h % 1 === 0 ? h : h.toFixed(1)} h`; };
 
 /* ---------- Dibujo ---------- */
-function dibujar() {
-  const hoy = (new Date().getDay() + 6) % 7;
-  if (document.activeElement !== $("nombre")) $("nombre").value = meta.titulo;
+function render() {
+  $("titulo").textContent = meta.titulo;
+  $("sub").textContent = meta.subtitulo; $("sub").hidden = !meta.subtitulo;
+  $("btnDes").disabled = !historial.length;
+  $("vDia").hidden = vista !== "dia";
+  $("vSemana").hidden = vista !== "semana";
+  $("tabDia").setAttribute("aria-selected", vista === "dia");
+  $("tabSem").setAttribute("aria-selected", vista === "semana");
+  if (vista === "dia") renderDia(); else renderSemana();
+}
 
-  const enc = $("encabezado");
-  enc.innerHTML = "";
-  const th0 = document.createElement("th");
-  th0.textContent = "Hora"; th0.dataset.todo = "1"; th0.title = "Seleccionar todo";
-  enc.appendChild(th0);
-  meta.dias.forEach((d, i) => {
-    const th = document.createElement("th");
-    th.textContent = d; th.dataset.col = i; if (i === hoy) th.className = "hoy";
-    enc.appendChild(th);
-  });
+function leyendaHtml(min, soloUsadas) {
+  return Object.entries(meta.categorias)
+    .filter(([k]) => k !== "libre" && (!soloUsadas || min[k] > 0))
+    .map(([k, c]) => `<span><i style="background:${c.color}"></i>${esc(c.nombre)} <b>${hTxt(min[k] || 0)}</b></span>`).join("");
+}
 
-  const cuerpo = $("cuerpo");
-  cuerpo.innerHTML = "";
+function renderDia() {
+  const c = diaSel, hoy = hoyIdx();
+  $("tira").innerHTML = meta.dias.map((d, i) => {
+    const cats = [...new Set(celdas.map(f => f[i].categoria))].filter(k => k !== "libre" && meta.categorias[k]).slice(0, 4);
+    return `<button class="dchip${i === c ? " on" : ""}${i === hoy ? " hoy" : ""}" data-d="${i}" aria-pressed="${i === c}" aria-label="${esc(d)}">
+      <span>${esc(d.slice(0, 3))}</span><span class="pts">${cats.map(k => `<i style="background:${meta.categorias[k].color}"></i>`).join("")}</span></button>`;
+  }).join("");
+
+  const min = minPorCat([c]);
+  const total = Object.values(min).reduce((a, b) => a + b, 0) || 1;
+  const ocupado = total - (min.libre || 0);
+  $("cabDia").innerHTML = `<h2>${esc(meta.dias[c])}</h2>${c === hoy ? '<span class="badge">Hoy</span>' : ""}<span class="tot">${hTxt(ocupado)} ocupadas</span>`;
+  $("barra").innerHTML = Object.entries(meta.categorias).filter(([k]) => k !== "libre" && min[k] > 0)
+    .map(([k, cat]) => `<i style="width:${min[k] / total * 100}%;background:${cat.color}"></i>`).join("");
+  $("leyDia").innerHTML = leyendaHtml(min, true);
+
+  const ahora = c === hoy ? filaAhora() : -1;
+  $("linea").innerHTML = corridas(c).map(({ r1, r2, cel }) => {
+    const libre = esLibre(cel), cat = catDe(cel.categoria), n = r2 - r1 + 1;
+    const esAhora = ahora >= r1 && ahora <= r2;
+    const ini = fmt(meta.franjas[r1][0]), fin = fmt(meta.franjas[r2][1]);
+    const tiempo = horasTxt(dur(r1, r2)) + (esAhora ? " · <b>Ahora</b>" : "");
+    return `<div class="fila"><div class="hora"><b>${ini}</b><span>${fin}</span></div>
+      <button class="bloque${libre ? " libre" : ""}${esAhora ? " ahora" : ""}" style="--col:${cat.color};--n:${n}" data-c="${c}" data-r1="${r1}" data-r2="${r2}">
+        <span class="bt">${esc(cel.titulo)}</span>${cel.detalle ? `<span class="bd">${esc(cel.detalle)}</span>` : ""}
+        <span class="bm">${libre ? "" : esc(cat.nombre) + " · "}${tiempo}</span></button></div>`;
+  }).join("");
+
+  if (primeraVez) {
+    primeraVez = false;
+    setTimeout(() => { const a = document.querySelector(".bloque.ahora"); if (a) a.scrollIntoView({ block: "center" }); }, 60);
+  }
+}
+
+function renderSemana() {
+  const hoy = hoyIdx(), D = meta.dias.length;
+  $("leySem").innerHTML = leyendaHtml(minPorCat([...Array(D).keys()]), false).replace(/<b>(.*?)<\/b>/g, "<b>$1/sem</b>");
+  const runAt = meta.dias.map((_, c) => { const a = []; corridas(c).forEach(x => { for (let r = x.r1; r <= x.r2; r++) a[r] = x; }); return a; });
+  let h = '<div class="sh corner"></div>' + meta.dias.map((d, i) =>
+    `<button class="sh${i === hoy ? " hoy" : ""}" data-d="${i}" aria-label="Ver ${esc(d)}">${esc(d.slice(0, 3))}</button>`).join("");
   meta.franjas.forEach((f, r) => {
-    const tr = document.createElement("tr");
-    const th = document.createElement("td");
-    th.className = "hora"; th.dataset.fila = r;
-    th.textContent = `${fmt(f[0])} - ${fmt(f[1])}`;
-    tr.appendChild(th);
-    meta.dias.forEach((_, c) => {
-      const cel = celdas[r][c];
-      const cat = meta.categorias[cel.categoria] || { color: "#64748b" };
-      const td = document.createElement("td");
-      td.className = "celda"; td.dataset.r = r; td.dataset.c = c;
-      const box = document.createElement("div");
-      box.className = "c" + (esLibre(cel) ? " libre" : "");
-      box.style.setProperty("--col", cat.color);
-      const s = document.createElement("strong"); s.textContent = cel.titulo;
-      box.appendChild(s);
-      if (cel.detalle) { const sp = document.createElement("span"); sp.textContent = cel.detalle; box.appendChild(sp); }
-      td.appendChild(box);
-      tr.appendChild(td);
-    });
-    cuerpo.appendChild(tr);
+    const [hm, suf] = horaCorta(f[0]);
+    h += `<div class="st"><b>${hm}</b><i>${suf}</i></div>`;
+    for (let c = 0; c < D; c++) {
+      const x = runAt[c][r], hc = c === hoy ? " hoyc" : "";
+      if (esLibre(x.cel)) h += `<button class="wc libre${hc}" data-c="${c}" data-r="${r}" aria-label="${esc(meta.dias[c])} ${fmt(f[0])}, libre"></button>`;
+      else if (x.r1 === r) {
+        const cat = catDe(x.cel.categoria);
+        h += `<div class="wc${hc}"><button class="wb" style="--col:${cat.color};--n:${x.r2 - x.r1 + 1}" data-c="${c}" data-r1="${x.r1}" data-r2="${x.r2}"
+          aria-label="${esc(meta.dias[c])}: ${esc(x.cel.titulo)}"><b>${esc(x.cel.titulo)}</b>${x.cel.detalle ? `<span>${esc(x.cel.detalle)}</span>` : ""}</button></div>`;
+      } else h += `<div class="wc${hc}"></div>`;
+    }
   });
-
-  // paleta con horas semanales
-  const min = {};
-  Object.keys(meta.categorias).forEach(k => min[k] = 0);
-  celdas.forEach((fila, r) => fila.forEach(c => { if (c.categoria in min) min[c.categoria] += aMin(meta.franjas[r][1]) - aMin(meta.franjas[r][0]); }));
-  const pal = $("paleta");
-  pal.innerHTML = '<span class="rot">Categoría:</span>';
-  Object.entries(meta.categorias).forEach(([id, c]) => {
-    const b = document.createElement("button");
-    b.type = "button"; b.className = "cat"; b.dataset.id = id; b.style.setProperty("--c", c.color);
-    b.innerHTML = '<span class="punto"></span><span class="n"></span><span class="horas"></span>';
-    b.querySelector(".n").textContent = c.nombre;
-    const h = min[id] / 60;
-    b.querySelector(".horas").textContent = `${h % 1 === 0 ? h : h.toFixed(1)} h/sem`;
-    pal.appendChild(b);
-  });
-
-  $("btnDeshacer").disabled = !historial.length;
-  $("btnRehacer").disabled = !futuro.length;
-  actualizarSel();
+  $("semana").innerHTML = h;
 }
 
 /* ---------- Cambios con deshacer ---------- */
-function instantanea() {
-  historial.push(JSON.stringify(celdas));
-  if (historial.length > 100) historial.shift();
-  futuro = [];
-}
-function cambiar(fn) {
-  instantanea();
-  celdasSel().forEach(([r, c]) => { celdas[r][c] = fn({ ...celdas[r][c] }); });
-  dibujar(); guardar();
-}
-function deshacer() {
-  if (!historial.length) return;
-  futuro.push(JSON.stringify(celdas));
-  celdas = JSON.parse(historial.pop());
-  dibujar(); guardar();
-}
-function rehacer() {
-  if (!futuro.length) return;
-  historial.push(JSON.stringify(celdas));
-  celdas = JSON.parse(futuro.pop());
-  dibujar(); guardar();
+function instantanea() { historial.push(JSON.stringify(celdas)); if (historial.length > 100) historial.shift(); futuro = []; }
+function deshacer() { if (!historial.length) return; futuro.push(JSON.stringify(celdas)); celdas = JSON.parse(historial.pop()); guardar(); render(); }
+function rehacer() { if (!futuro.length) return; historial.push(JSON.stringify(celdas)); celdas = JSON.parse(futuro.pop()); guardar(); render(); }
+
+function aviso(txt, conDeshacer) {
+  $("toastTxt").textContent = txt; $("toastDes").hidden = !conDeshacer;
+  $("toast").classList.add("ver"); clearTimeout(tT);
+  tT = setTimeout(() => $("toast").classList.remove("ver"), conDeshacer ? 5000 : 2500);
 }
 
-function ponerTitulo(v) {
-  v = v.trim();
-  if (!v) return cambiar(() => ({ ...CELDA_LIBRE }));
-  cambiar(c => ({ ...c, titulo: v, categoria: c.categoria === "libre" ? ultimaCat : c.categoria, detalle: esLibre(c) ? "" : c.detalle }));
-}
-function ponerCategoria(id) {
-  if (id !== "libre") ultimaCat = id;
-  cambiar(c => {
-    if (id === "libre") return { ...CELDA_LIBRE };
-    const vacio = esLibre(c) || !c.titulo;
-    return { categoria: id, titulo: vacio ? meta.categorias[id].nombre : c.titulo, detalle: esLibre(c) ? "" : c.detalle };
-  });
-}
-
-/* ---------- Edición dentro de la casilla ---------- */
-function editar(inicial) {
-  const td = tdDe(sel.ar, sel.ac);
-  if (!td) return;
-  const box = td.querySelector(".c");
-  const input = document.createElement("input");
-  input.className = "inline";
-  const actual = celdas[sel.ar][sel.ac];
-  input.value = inicial !== null ? inicial : (esLibre(actual) ? "" : actual.titulo);
-  box.replaceChildren(input);
-  editando = true;
-  input.focus();
-  if (inicial !== null) input.setSelectionRange(input.value.length, input.value.length); else input.select();
-
-  let listo = false;
-  const terminar = (guardarCambio, dr, dc) => {
-    if (listo) return;
-    listo = true; editando = false;
-    if (guardarCambio) ponerTitulo(input.value); else dibujar();
-    if (dr || dc) mover(dr, dc, false);
-    input.blur();
+/* ---------- Editor de bloque ---------- */
+function abrirEditor({ c, r1, r2 }) {
+  const base = celdas[r1][c], libre = esLibre(base);
+  ed = {
+    orig: libre ? null : { c, r1, r2 }, dias: new Set([c]),
+    cat: libre ? ultimaCat : base.categoria
   };
-  input.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") { e.preventDefault(); terminar(true, 1, 0); }
-    else if (e.key === "Tab") { e.preventDefault(); terminar(true, 0, e.shiftKey ? -1 : 1); }
-    else if (e.key === "Escape") { e.preventDefault(); terminar(false, 0, 0); }
-  });
-  input.addEventListener("blur", () => terminar(true, 0, 0));
+  $("edTit").textContent = libre ? "Nuevo bloque" : "Editar bloque";
+  $("edTitulo").value = libre ? "" : base.titulo;
+  $("edDetalle").value = libre ? "" : base.detalle;
+  $("edVaciar").hidden = libre;
+
+  $("edDesde").innerHTML = meta.franjas.map((f, i) => `<option value="${i}">${fmt(f[0])}</option>`).join("");
+  $("edDesde").value = r1; llenarHasta(r2);
+
+  // bloques que más usas, para llenarlo con un toque
+  const cuenta = new Map();
+  celdas.forEach(f => f.forEach(x => { if (esLibre(x)) return; const k = JSON.stringify([x.categoria, x.titulo, x.detalle]); cuenta.set(k, (cuenta.get(k) || 0) + 1); }));
+  const top = [...cuenta.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10).map(([k]) => JSON.parse(k));
+  $("campoRapido").hidden = !top.length;
+  $("edRapido").innerHTML = top.map((t, i) => `<button class="chip cat" style="--c:${catDe(t[0]).color}" data-i="${i}"><i></i>${esc(t[1])}${t[2] ? " · " + esc(t[2]) : ""}</button>`).join("");
+  ed.top = top;
+
+  pintarDias(); pintarCats(); actualizarEd();
+  $("editor").showModal();
+  $("editor").querySelector(".hoja").scrollTop = 0;
 }
-
-/* ---------- Ratón ---------- */
-const cuerpo = $("cuerpo");
-function soltarFoco() { const a = document.activeElement; if (a && a !== document.body && a.tagName !== "TABLE") a.blur(); }
-
-cuerpo.addEventListener("mousedown", (e) => {
-  if (e.target.closest("input")) return;
-  const td = e.target.closest("td");
-  if (!td) return;
-  soltarFoco();
-  if (td.classList.contains("hora")) {
-    const r = +td.dataset.fila;
-    sel = { ar: r, ac: 0, fr: r, fc: meta.dias.length - 1 };
-    actualizarSel(); e.preventDefault(); return;
-  }
-  const r = +td.dataset.r, c = +td.dataset.c;
-  if (e.shiftKey) { sel = { ...sel, fr: r, fc: c }; }
-  else { sel = { ar: r, ac: c, fr: r, fc: c }; arrastrando = true; }
-  actualizarSel();
-  e.preventDefault();
-});
-cuerpo.addEventListener("mouseover", (e) => {
-  if (!arrastrando) return;
-  const td = e.target.closest("td.celda");
-  if (!td) return;
-  sel = { ...sel, fr: +td.dataset.r, fc: +td.dataset.c };
-  actualizarSel();
-});
-document.addEventListener("mouseup", () => { arrastrando = false; });
-cuerpo.addEventListener("dblclick", (e) => { if (e.target.closest("td.celda") && !e.target.closest("input")) editar(null); });
-
-$("encabezado").addEventListener("click", (e) => {
-  const th = e.target.closest("th");
-  if (!th) return;
-  soltarFoco();
-  if (th.dataset.todo) sel = { ar: 0, ac: 0, fr: celdas.length - 1, fc: meta.dias.length - 1 };
-  else { const c = +th.dataset.col; sel = { ar: 0, ac: c, fr: celdas.length - 1, fc: c }; }
-  actualizarSel();
-});
-
-/* ---------- Barra de fórmula y paleta ---------- */
-$("fTitulo").addEventListener("change", (e) => ponerTitulo(e.target.value));
-$("fDetalle").addEventListener("change", (e) => {
-  const v = e.target.value.trim();
-  cambiar(c => esLibre(c) ? c : { ...c, detalle: v });
-});
-["fTitulo", "fDetalle"].forEach(id => $(id).addEventListener("keydown", (e) => { if (e.key === "Enter") e.target.blur(); }));
-$("paleta").addEventListener("click", (e) => {
-  const b = e.target.closest(".cat");
-  if (b) { ponerCategoria(b.dataset.id); b.blur(); }
-});
-$("nombre").addEventListener("change", (e) => { meta.titulo = e.target.value.trim() || "Mi horario"; guardar(); });
-$("nombre").addEventListener("keydown", (e) => { if (e.key === "Enter") e.target.blur(); });
-
-/* ---------- Teclado ---------- */
-const enCampo = () => { const a = document.activeElement; return a && (a.tagName === "INPUT" || a.tagName === "TEXTAREA"); };
-
-document.addEventListener("keydown", (e) => {
-  if (enCampo() || editando) return;
-  const ctrl = e.ctrlKey || e.metaKey;
-  const k = e.key;
-
-  if (ctrl) {
-    const t = k.toLowerCase();
-    if (t === "z" && !e.shiftKey) { e.preventDefault(); deshacer(); }
-    else if (t === "y" || (t === "z" && e.shiftKey)) { e.preventDefault(); rehacer(); }
-    else if (t === "a") { e.preventDefault(); sel = { ar: 0, ac: 0, fr: celdas.length - 1, fc: meta.dias.length - 1 }; actualizarSel(); }
-    else if (t === "d") {
-      e.preventDefault();
-      const { r1, r2, c1, c2 } = rango();
-      if (r2 > r1) { instantanea(); for (let c = c1; c <= c2; c++) for (let r = r1 + 1; r <= r2; r++) celdas[r][c] = { ...celdas[r1][c] }; dibujar(); guardar(); }
-    }
-    else if (t === "r") {
-      e.preventDefault();
-      const { r1, r2, c1, c2 } = rango();
-      if (c2 > c1) { instantanea(); for (let r = r1; r <= r2; r++) for (let c = c1 + 1; c <= c2; c++) celdas[r][c] = { ...celdas[r][c1] }; dibujar(); guardar(); }
-    }
-    return;
-  }
-  if (e.altKey) return;
-
-  if (k.startsWith("Arrow")) {
-    e.preventDefault();
-    const d = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] }[k];
-    mover(d[0], d[1], e.shiftKey);
-  } else if (k === "Tab") { e.preventDefault(); mover(0, e.shiftKey ? -1 : 1, false); }
-  else if (k === "Delete" || k === "Backspace") { e.preventDefault(); cambiar(() => ({ ...CELDA_LIBRE })); }
-  else if (k === "Enter" || k === "F2") { e.preventDefault(); editar(null); }
-  else if (k.length === 1) { e.preventDefault(); editar(k); }
-});
-
-/* ---------- Copiar, cortar y pegar (compatible con Excel) ---------- */
-function textoCopia() {
-  const { r1, r2, c1, c2 } = rango();
-  const filas = [];
-  for (let r = r1; r <= r2; r++) {
-    const fila = [];
-    for (let c = c1; c <= c2; c++) fila.push({ ...celdas[r][c] });
-    filas.push(fila);
-  }
-  const txt = filas.map(f => f.map(c => esLibre(c) ? "" : (c.detalle ? `${c.titulo} - ${c.detalle}` : c.titulo)).join("\t")).join("\n");
-  clip = { filas, txt };
-  return txt;
+function llenarHasta(sel) {
+  const d = +$("edDesde").value;
+  $("edHasta").innerHTML = meta.franjas.map((f, i) => i >= d ? `<option value="${i}">${fmt(f[1])}</option>` : "").join("");
+  $("edHasta").value = Math.max(d, Math.min(sel, celdas.length - 1));
 }
-document.addEventListener("copy", (e) => {
-  if (enCampo() || editando) return;
-  e.clipboardData.setData("text/plain", textoCopia());
-  e.preventDefault();
-});
-document.addEventListener("cut", (e) => {
-  if (enCampo() || editando) return;
-  e.clipboardData.setData("text/plain", textoCopia());
-  e.preventDefault();
-  cambiar(() => ({ ...CELDA_LIBRE }));
-});
-document.addEventListener("paste", (e) => {
-  if (enCampo() || editando) return;
-  e.preventDefault();
-  const txt = (e.clipboardData.getData("text/plain") || "").replace(/\r/g, "");
-  let datos;
-  if (clip && clip.txt === txt) datos = clip.filas.map(f => f.map(c => ({ ...c })));
-  else datos = txt.replace(/\n$/, "").split("\n").map(l => l.split("\t").map(t => {
-    t = t.trim();
-    return t ? { categoria: ultimaCat, titulo: t, detalle: "" } : { ...CELDA_LIBRE };
-  }));
-  if (!datos.length) return;
-
-  const { r1, r2, c1, c2 } = rango();
+function pintarDias() {
+  $("edDias").innerHTML = meta.dias.map((d, i) => `<button class="chip" data-d="${i}" aria-pressed="${ed.dias.has(i)}">${esc(d.slice(0, 3))}</button>`).join("");
+}
+function pintarCats() {
+  $("edCats").innerHTML = Object.entries(meta.categorias).map(([k, c]) =>
+    `<button class="chip cat" style="--c:${c.color}" data-k="${k}" aria-pressed="${ed.cat === k}"><i></i>${esc(c.nombre)}</button>`).join("");
+  $("edTexto").hidden = ed.cat === "libre";
+  $("edTitulo").placeholder = ed.cat === "libre" ? "" : (catDe(ed.cat).nombre + "…");
+}
+function actualizarEd() {
+  const r1 = +$("edDesde").value, r2 = +$("edHasta").value, dias = [...ed.dias];
+  const choques = new Set();
+  if (ed.cat !== "libre") dias.forEach(c => { for (let r = r1; r <= r2; r++) {
+    const x = celdas[r][c]; if (esLibre(x)) continue;
+    if (ed.orig && ed.orig.c === c && r >= ed.orig.r1 && r <= ed.orig.r2) continue;
+    choques.add(x.titulo);
+  } });
+  const partes = [`${horasTxt(dur(r1, r2))}${dias.length > 1 ? " × " + dias.length + " días" : ""}`];
+  $("edNota").innerHTML = esc(partes[0]) + (choques.size ? ` · <span class="aviso">Reemplaza: ${esc([...choques].join(", "))}</span>` : "");
+  $("edGuardar").disabled = !dias.length;
+}
+function guardarEditor(forzarLibre) {
+  const dias = [...ed.dias]; if (!dias.length) return;
+  const r1 = +$("edDesde").value, r2 = +$("edHasta").value;
+  const libre = forzarLibre || ed.cat === "libre";
+  const nuevo = libre ? { ...CELDA_LIBRE } : {
+    categoria: ed.cat, titulo: $("edTitulo").value.trim() || catDe(ed.cat).nombre, detalle: $("edDetalle").value.trim()
+  };
   instantanea();
-  if (datos.length === 1 && datos[0].length === 1 && (r2 > r1 || c2 > c1)) {
-    for (let r = r1; r <= r2; r++) for (let c = c1; c <= c2; c++) celdas[r][c] = { ...datos[0][0] };
-  } else {
-    datos.forEach((fila, i) => fila.forEach((cel, j) => {
-      const r = r1 + i, c = c1 + j;
-      if (r < celdas.length && c < meta.dias.length) celdas[r][c] = { ...cel };
-    }));
-    sel = { ar: r1, ac: c1, fr: Math.min(celdas.length - 1, r1 + datos.length - 1), fc: Math.min(meta.dias.length - 1, c1 + datos[0].length - 1) };
+  if (ed.orig) { const o = ed.orig;           // lo que dejaste fuera del bloque original queda libre
+    for (let r = o.r1; r <= o.r2; r++) if (!(ed.dias.has(o.c) && r >= r1 && r <= r2)) celdas[r][o.c] = { ...CELDA_LIBRE };
   }
-  dibujar(); guardar();
+  if (forzarLibre && ed.orig) { for (let r = ed.orig.r1; r <= ed.orig.r2; r++) celdas[r][ed.orig.c] = { ...CELDA_LIBRE }; }
+  else dias.forEach(c => { for (let r = r1; r <= r2; r++) celdas[r][c] = { ...nuevo }; });
+  if (!libre) ultimaCat = ed.cat;
+  $("editor").close(); guardar(); render();
+  aviso(forzarLibre ? "Bloque vaciado" : "Bloque guardado", true);
+}
+
+/* ---------- Eventos ---------- */
+$("tira").addEventListener("click", (e) => { const b = e.target.closest(".dchip"); if (b) { diaSel = +b.dataset.d; renderDia(); } });
+$("linea").addEventListener("click", (e) => {
+  const b = e.target.closest(".bloque"); if (!b) return;
+  abrirEditor({ c: +b.dataset.c, r1: +b.dataset.r1, r2: +b.dataset.r2 });
+});
+$("semana").addEventListener("click", (e) => {
+  const h = e.target.closest("button.sh[data-d]");
+  if (h) { diaSel = +h.dataset.d; vista = "dia"; render(); window.scrollTo(0, 0); return; }
+  const b = e.target.closest(".wb");
+  if (b) return abrirEditor({ c: +b.dataset.c, r1: +b.dataset.r1, r2: +b.dataset.r2 });
+  const l = e.target.closest("button.wc.libre");
+  if (l) abrirEditor({ c: +l.dataset.c, r1: +l.dataset.r, r2: +l.dataset.r });
+});
+document.querySelectorAll(".vistas button").forEach(b => b.addEventListener("click", () => { vista = b.dataset.v; render(); window.scrollTo(0, 0); }));
+
+$("fab").addEventListener("click", () => {          // primer hueco libre del día (o el que viene tras la hora actual)
+  const ahora = diaSel === hoyIdx() ? filaAhora() : -1;
+  const libres = corridas(diaSel).filter(x => esLibre(x.cel));
+  const x = libres.find(y => y.r2 >= ahora) || libres[0] || { r1: 0, r2: 0 };
+  abrirEditor({ c: diaSel, r1: Math.max(x.r1, Math.min(ahora, x.r2)), r2: x.r2 });
 });
 
-/* ---------- Botones de arriba ---------- */
-$("btnDeshacer").addEventListener("click", (e) => { deshacer(); e.currentTarget.blur(); });
-$("btnRehacer").addEventListener("click", (e) => { rehacer(); e.currentTarget.blur(); });
-$("btnDescargar").addEventListener("click", (e) => {
+// swipe entre días
+(() => {
+  let x0 = 0, y0 = 0;
+  const v = $("vDia");
+  v.addEventListener("touchstart", (e) => { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, { passive: true });
+  v.addEventListener("touchend", (e) => {
+    const dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
+    if (Math.abs(dx) > 70 && Math.abs(dx) > 2 * Math.abs(dy)) {
+      const n = diaSel + (dx < 0 ? 1 : -1);
+      if (n >= 0 && n < meta.dias.length) { diaSel = n; renderDia(); }
+    }
+  }, { passive: true });
+})();
+
+// editor
+$("edDias").addEventListener("click", (e) => {
+  const b = e.target.closest(".chip"); if (!b) return;
+  const d = +b.dataset.d;
+  if (ed.dias.has(d)) ed.dias.delete(d); else ed.dias.add(d);
+  pintarDias(); actualizarEd();
+});
+$("edCats").addEventListener("click", (e) => { const b = e.target.closest(".chip"); if (!b) return; ed.cat = b.dataset.k; pintarCats(); actualizarEd(); });
+$("edRapido").addEventListener("click", (e) => {
+  const b = e.target.closest(".chip"); if (!b) return;
+  const t = ed.top[+b.dataset.i]; ed.cat = t[0]; $("edTitulo").value = t[1]; $("edDetalle").value = t[2];
+  pintarCats(); actualizarEd();
+});
+$("edDesde").addEventListener("change", () => { llenarHasta(+$("edHasta").value); actualizarEd(); });
+$("edHasta").addEventListener("change", actualizarEd);
+$("edGuardar").addEventListener("click", () => guardarEditor(false));
+$("edVaciar").addEventListener("click", () => guardarEditor(true));
+$("edCerrar").addEventListener("click", () => $("editor").close());
+$("edTitulo").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); $("edDetalle").focus(); } });
+$("edDetalle").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); guardarEditor(false); } });
+["editor", "menu"].forEach(id => $(id).addEventListener("click", (e) => { if (e.target === $(id)) $(id).close(); }));
+
+// barra superior, menú y aviso
+$("btnDes").addEventListener("click", deshacer);
+$("toastDes").addEventListener("click", () => { deshacer(); $("toast").classList.remove("ver"); });
+$("btnMenu").addEventListener("click", () => {
+  $("mNombre").value = meta.titulo; $("mRehacer").disabled = !futuro.length; $("menu").showModal();
+});
+$("menuCerrar").addEventListener("click", () => $("menu").close());
+$("mNombre").addEventListener("change", (e) => { meta.titulo = e.target.value.trim() || "Mi horario"; guardar(); render(); });
+$("mRehacer").addEventListener("click", () => { rehacer(); $("menu").close(); });
+$("mDescargar").addEventListener("click", () => {
   const blob = new Blob([JSON.stringify(aJson(), null, 2)], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob); a.download = "horario.json";
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-  e.currentTarget.blur();
+  $("menu").close();
 });
-$("btnImportar").addEventListener("click", (e) => { $("archivo").click(); e.currentTarget.blur(); });
+$("mImportar").addEventListener("click", () => $("archivo").click());
 $("archivo").addEventListener("change", (e) => {
-  const f = e.target.files[0];
-  if (!f) return;
-  f.text().then(t => { cargarJson(JSON.parse(t)); dibujar(); guardar(); })
+  const f = e.target.files[0]; if (!f) return;
+  f.text().then(t => { cargarJson(JSON.parse(t)); guardar(); $("menu").close(); render(); aviso("Horario importado"); })
     .catch(err => alert("El archivo no es un horario válido: " + err.message));
   e.target.value = "";
 });
-$("btnBlanco").addEventListener("click", (e) => {
-  e.currentTarget.blur();
-  if (!confirm("Se vacían todas las casillas (puedes deshacerlo con Ctrl+Z). ¿Continuar?")) return;
-  instantanea();
-  celdas = celdas.map(f => f.map(() => ({ ...CELDA_LIBRE })));
-  dibujar(); guardar();
+$("mBlanco").addEventListener("click", () => {
+  if (!confirm("Se vacían todas las casillas. ¿Continuar?")) return;
+  instantanea(); celdas = celdas.map(f => f.map(() => ({ ...CELDA_LIBRE })));
+  guardar(); $("menu").close(); render(); aviso("Horario en blanco", true);
 });
-$("btnReset").addEventListener("click", (e) => {
-  e.currentTarget.blur();
-  if (!confirm("Se reemplaza todo por el horario de ejemplo. ¿Continuar?")) return;
-  cargarJson(EJEMPLO); dibujar(); guardar();
+$("mReset").addEventListener("click", () => {
+  if (!confirm("Se reemplaza todo por tu horario original. ¿Continuar?")) return;
+  cargarJson(EJEMPLO); guardar(); $("menu").close(); render(); aviso("Horario restaurado");
 });
 
 /* ---------- Inicio ---------- */
@@ -593,8 +645,18 @@ $("btnReset").addEventListener("click", (e) => {
     }
   } catch (e) {}
   if (!ok) cargarJson(EJEMPLO);
-  dibujar();
+  diaSel = hoyIdx() < meta.dias.length ? hoyIdx() : 0;
+  render();
+  setInterval(() => { if (!document.querySelector("dialog[open]") && vista === "dia") renderDia(); }, 60000);
 })();
+// Registrar Service Worker para PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then((reg) => console.log('Service Worker registrado con éxito:', reg.scope))
+      .catch((err) => console.log('Error al registrar el Service Worker:', err));
+  });
+}
 </script>
 </body>
 </html>
