@@ -3,24 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#f3f0e9" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#11151c" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#121316">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mi Horario">
 <title>Mi horario</title>
 <style>
   :root {
-    --fondo:#f3f0e9; --papel:#ffffff; --papel2:#faf8f4; --tinta:#1b2430; --suave:#667085; --linea:#e4dfd4;
-    --acento:#0e7a8c; --acento-fondo:rgba(14,122,140,.09); --peligro:#b42318; --rh:46px;
-    --sombra:0 6px 24px rgba(27,36,48,.12);
-  }
-  @media (prefers-color-scheme: dark) {
-    :root { --fondo:#11151c; --papel:#1a212b; --papel2:#161c25; --tinta:#e9eef5; --suave:#93a0b3; --linea:#2b3441;
-      --acento:#35b6c9; --acento-fondo:rgba(53,182,201,.12); --peligro:#ff8a80; --sombra:0 6px 24px rgba(0,0,0,.45); }
+    --fondo:#121316; --papel:#1b1d21; --papel2:#16181b; --tinta:#eceef1; --suave:#979ea9; --linea:#2c2f35;
+    --acento:#d3d8df; --acento-fondo:rgba(211,216,223,.07); --peligro:#ff8a80; --rh:46px;
+    --sombra:0 8px 28px rgba(0,0,0,.5);
   }
   * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-  html { color-scheme:light dark; }
+  html { color-scheme:dark; }
   body { margin:0; background:var(--fondo); color:var(--tinta);
     font:16px/1.35 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; -webkit-text-size-adjust:100%; }
   body:has(dialog[open]) { overflow:hidden; }
@@ -32,7 +27,7 @@
   /* ---------- Cabecera ---------- */
   .top { position:sticky; top:0; z-index:20; background:color-mix(in srgb,var(--fondo) 88%,transparent);
     -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); padding-top:env(safe-area-inset-top); }
-  .top-in { max-width:1180px; margin:0 auto; padding:10px 14px; display:flex; align-items:center; gap:8px; min-height:60px; }
+  .top-in { max-width:1400px; margin:0 auto; padding:10px 14px; display:flex; align-items:center; gap:8px; min-height:60px; }
   .marca { flex:1; min-width:0; }
   .marca h1 { margin:0; font-size:20px; font-weight:800; letter-spacing:-.02em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .marca p { margin:1px 0 0; font-size:13px; color:var(--suave); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -40,7 +35,7 @@
   .ic:active { transform:scale(.95); }
   .ic:disabled { opacity:.35; }
 
-  main { max-width:1180px; margin:0 auto; padding:6px 14px calc(150px + env(safe-area-inset-bottom)); }
+  main { max-width:1400px; margin:0 auto; padding:6px 14px calc(150px + env(safe-area-inset-bottom)); }
 
   /* ---------- Navegación Día / Semana ---------- */
   .vistas { position:fixed; left:0; right:0; bottom:0; z-index:30; display:flex; background:var(--papel);
@@ -66,7 +61,7 @@
 
   .cab-dia { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; }
   .cab-dia h2 { margin:0; font-size:28px; font-weight:800; letter-spacing:-.03em; }
-  .badge { font-size:12px; font-weight:800; color:#fff; background:var(--acento); padding:3px 9px; border-radius:99px; }
+  .badge { font-size:12px; font-weight:800; color:var(--fondo); background:var(--acento); padding:3px 9px; border-radius:99px; }
   .cab-dia .tot { margin-left:auto; font-size:13px; color:var(--suave); }
   .barra { display:flex; height:10px; border-radius:99px; overflow:hidden; background:var(--linea); margin:10px 0 8px; }
   .barra i { display:block; height:100%; }
@@ -82,7 +77,7 @@
   .fila .hora b { font-size:14px; font-weight:750; }
   .fila .hora span { font-size:12px; color:var(--suave); }
   .bloque { flex:1; min-width:0; text-align:left; display:flex; flex-direction:column; justify-content:center; gap:3px;
-    padding:11px 14px; border-radius:16px; border-left:6px solid var(--col); background:var(--papel);
+    padding:11px 14px; border-radius:16px; border:1px solid var(--linea); border-left:6px solid var(--col); background:var(--papel);
     min-height:min(calc(var(--n)*20px + 44px),200px); box-shadow:0 1px 0 rgba(0,0,0,.04); }
   @supports (background:color-mix(in srgb,red 10%,white)) {
     .bloque { background:color-mix(in srgb,var(--col) 17%,var(--papel)); }
@@ -176,22 +171,59 @@
     display:flex; align-items:center; gap:14px; max-width:calc(100% - 28px); padding:12px 16px; border-radius:16px; background:var(--tinta); color:var(--papel);
     font-size:14.5px; font-weight:600; box-shadow:var(--sombra); transition:opacity .2s, transform .2s; }
   .toast.ver { opacity:1; transform:translate(-50%,0); pointer-events:auto; }
-  .toast button { font-weight:800; color:var(--acento); padding:4px 2px; }
-  @media (prefers-color-scheme: light) { .toast button { color:#7ee0ee; } }
+  .toast button { font-weight:800; color:var(--fondo); text-decoration:underline; padding:4px 2px; }
 
-  /* ---------- Pantallas anchas ---------- */
+  .nf { display:none; }
+  @media (hover:hover) {
+    .dchip:hover, .ic:hover, .item:hover, .chip:hover, .btn:hover { border-color:var(--suave); }
+    .bloque:hover { filter:brightness(1.15); }
+    .wb:hover { filter:brightness(1.2); }
+    button.wc.libre:hover { background:var(--acento-fondo); }
+    .vistas button:hover { color:var(--tinta); }
+  }
+
+  /* ---------- Pantallas anchas (computadora) ---------- */
   @media (min-width:860px) {
-    .vistas { position:static; width:max-content; margin:0 auto 6px; padding:5px; border:1px solid var(--linea); border-radius:18px; }
-    .vistas button { flex-direction:row; gap:8px; padding:9px 22px; font-size:14px; }
-    main { padding-top:12px; padding-bottom:110px; }
-    .fab { bottom:28px; right:28px; }
+    :root { --rh:clamp(46px, calc((100dvh - 320px) / 20), 72px); }
+    .top-in { padding:14px 32px; min-height:76px; }
+    .marca h1 { font-size:26px; }
+    .marca p { font-size:14px; }
+    .vistas { position:static; width:max-content; margin:4px auto 10px; padding:5px; border:1px solid var(--linea); border-radius:18px; }
+    .vistas button { flex-direction:row; gap:8px; padding:9px 26px; font-size:14px; }
+    main { padding:8px 32px 110px; }
+    .fab { bottom:28px; right:32px; }
     .toast { bottom:30px; }
-    .semana { min-width:0; }
-    .semana-wrap { max-height:calc(100dvh - 250px); }
-    .linea, .cab-dia, .barra, .tira { max-width:720px; margin-left:auto; margin-right:auto; }
-    .cab-dia { margin-top:4px; }
-    .leyenda { max-width:720px; margin:0 auto; flex-wrap:wrap; }
-    dialog { margin:auto; border-radius:26px; }
+
+    /* Día: lista de días a la izquierda, línea del tiempo a la derecha */
+    #vDia { display:grid; grid-template-columns:minmax(210px,270px) minmax(0,1fr); column-gap:40px; align-items:start; }
+    .tira { grid-column:1; grid-row:1 / span 4; grid-template-columns:1fr; gap:8px; margin:6px 0 0; position:sticky; top:100px; }
+    .dchip { flex-direction:row; justify-content:space-between; align-items:center; padding:14px 18px; font-size:15px; border-radius:16px; }
+    .n3 { display:none; }
+    .nf { display:inline; }
+    .dchip .pts { height:8px; }
+    .dchip .pts i { width:8px; height:8px; }
+    .cab-dia { grid-column:2; grid-row:1; margin:6px 0 0; }
+    .cab-dia h2 { font-size:34px; }
+    .barra { grid-column:2; grid-row:2; height:12px; }
+    .leyenda { grid-column:2; grid-row:3; flex-wrap:wrap; font-size:14px; }
+    .linea { grid-column:2; grid-row:4; margin-top:10px; gap:10px; }
+    .fila .hora { width:88px; padding-top:14px; }
+    .fila .hora b { font-size:15px; }
+    .bloque { padding:14px 20px; }
+    .bt { font-size:18px; }
+    .bd { font-size:15px; }
+
+    /* Semana: ocupa todo el ancho */
+    .semana { min-width:0; grid-template-columns:64px repeat(7,minmax(0,1fr)); grid-template-rows:48px; }
+    .semana-wrap { max-height:calc(100dvh - 240px); border-radius:20px; }
+    .sh { font-size:15px; }
+    .st b { font-size:13px; }
+    .st i { font-size:11px; }
+    .wb { padding:5px 10px; border-radius:10px; }
+    .wb b { font-size:13.5px; }
+    .wb span { font-size:12px; }
+
+    dialog { margin:auto; border-radius:26px; border:1px solid var(--linea); }
   }
 </style>
 <link rel="manifest" href="./manifest.json">
@@ -411,7 +443,7 @@ function renderDia() {
   $("tira").innerHTML = meta.dias.map((d, i) => {
     const cats = [...new Set(celdas.map(f => f[i].categoria))].filter(k => k !== "libre" && meta.categorias[k]).slice(0, 4);
     return `<button class="dchip${i === c ? " on" : ""}${i === hoy ? " hoy" : ""}" data-d="${i}" aria-pressed="${i === c}" aria-label="${esc(d)}">
-      <span>${esc(d.slice(0, 3))}</span><span class="pts">${cats.map(k => `<i style="background:${meta.categorias[k].color}"></i>`).join("")}</span></button>`;
+      <span class="n3">${esc(d.slice(0, 3))}</span><span class="nf">${esc(d)}</span><span class="pts">${cats.map(k => `<i style="background:${meta.categorias[k].color}"></i>`).join("")}</span></button>`;
   }).join("");
 
   const min = minPorCat([c]);

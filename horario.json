@@ -135,7 +135,7 @@
       "hasta": "15:20",
       "categoria": "trabajo",
       "titulo": "Chamba",
-      "detalle": "Turno 10 AM - 3 PM"
+      "detalle": ""
     },
     {
       "dias": [
@@ -150,43 +150,12 @@
     {
       "dias": [
         1,
-        2,
-        4,
-        5,
-        6
+        5
       ],
       "desde": "19:50",
-      "hasta": "20:40",
-      "categoria": "proyecto",
-      "titulo": "Programacion",
-      "detalle": ""
-    },
-    {
-      "dias": [
-        1,
-        2,
-        4,
-        5,
-        6
-      ],
-      "desde": "20:40",
-      "hasta": "21:30",
-      "categoria": "proyecto",
-      "titulo": "Edicion de videos",
-      "detalle": ""
-    },
-    {
-      "dias": [
-        1,
-        2,
-        4,
-        5,
-        6
-      ],
-      "desde": "21:30",
       "hasta": "22:20",
-      "categoria": "proyecto",
-      "titulo": "modelamiento 3d",
+      "categoria": "trabajo",
+      "titulo": "Trabajo",
       "detalle": ""
     },
     {
@@ -243,11 +212,47 @@
         2,
         4
       ],
-      "desde": "12:00",
+      "desde": "11:10",
       "hasta": "19:00",
       "categoria": "trabajo",
       "titulo": "Chamba",
-      "detalle": "Turno 12 PM - 7 PM"
+      "detalle": ""
+    },
+    {
+      "dias": [
+        2,
+        4,
+        6
+      ],
+      "desde": "19:50",
+      "hasta": "20:40",
+      "categoria": "proyecto",
+      "titulo": "Programacion",
+      "detalle": ""
+    },
+    {
+      "dias": [
+        2,
+        4,
+        6
+      ],
+      "desde": "20:40",
+      "hasta": "21:30",
+      "categoria": "proyecto",
+      "titulo": "Edicion de videos",
+      "detalle": ""
+    },
+    {
+      "dias": [
+        2,
+        4,
+        6
+      ],
+      "desde": "21:30",
+      "hasta": "22:20",
+      "categoria": "proyecto",
+      "titulo": "modelamiento 3d",
+      "detalle": ""
     },
     {
       "dias": [
@@ -334,10 +339,10 @@
         6
       ],
       "desde": "07:50",
-      "hasta": "13:40",
+      "hasta": "16:10",
       "categoria": "trabajo",
-      "titulo": "Chamba",
-      "detalle": "Turno 8 AM - 2 PM"
+      "titulo": "Trabajo",
+      "detalle": ""
     },
     {
       "dias": [
@@ -353,51 +358,51 @@
       "dias": [
         7
       ],
-      "desde": "09:30",
-      "hasta": "10:20",
-      "categoria": "proyecto",
-      "titulo": "Programacion",
+      "desde": "07:50",
+      "hasta": "14:30",
+      "categoria": "trabajo",
+      "titulo": "Trabajo",
       "detalle": ""
     },
     {
       "dias": [
         7
       ],
-      "desde": "10:20",
-      "hasta": "11:10",
+      "desde": "15:20",
+      "hasta": "16:10",
       "categoria": "proyecto",
-      "titulo": "Edicion de videos",
+      "titulo": "Programación",
       "detalle": ""
     },
     {
       "dias": [
         7
       ],
-      "desde": "11:10",
-      "hasta": "12:00",
+      "desde": "16:30",
+      "hasta": "17:20",
       "categoria": "proyecto",
-      "titulo": "modelamiento 3d",
+      "titulo": "Edicion de vídeo",
       "detalle": ""
     },
     {
       "dias": [
         7
       ],
-      "desde": "12:00",
-      "hasta": "12:50",
+      "desde": "17:20",
+      "hasta": "18:10",
       "categoria": "proyecto",
-      "titulo": "Proyecto",
+      "titulo": "Modelamiento 3d",
       "detalle": ""
     },
     {
       "dias": [
         7
       ],
-      "desde": "13:40",
+      "desde": "19:00",
       "hasta": "22:20",
       "categoria": "trabajo",
-      "titulo": "Chamba",
-      "detalle": "Turno 2 PM - 10 PM"
+      "titulo": "Trabajo",
+      "detalle": ""
     }
   ],
   "reglasLibres": [],
