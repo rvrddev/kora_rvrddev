@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mi-horario-v2';
+const CACHE_NAME = 'mi-horario-v3';
 const APP_SHELL = [
   './',
   './index.html',
@@ -43,6 +43,23 @@ self.addEventListener('fetch', (event) => {
         return response;
       } catch (error) {
         return (await caches.match(request)) || (await caches.match('./index.html'));
+      }
+    })());
+    return;
+  }
+
+  // horario.json: primero la red (siempre la versión más nueva), caché si no hay conexión
+  if (url.pathname.endsWith('/horario.json')) {
+    event.respondWith((async () => {
+      try {
+        const response = await fetch(request, { cache: 'no-store' });
+        if (response.ok) {
+          const cache = await caches.open(CACHE_NAME);
+          await cache.put(request, response.clone());
+        }
+        return response;
+      } catch (error) {
+        return (await caches.match(request)) || Response.error();
       }
     })());
     return;
